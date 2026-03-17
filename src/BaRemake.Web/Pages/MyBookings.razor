@@ -1,0 +1,157 @@
+@page "/my-bookings"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using BaRemake.Data.Repositories
+@using BaRemake.Shared.Enums
+@using BaRemake.Shared.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IBookingRepository BookingRepo
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager Nav
+
+<PageTitle>My Bookings – BaRemake</PageTitle>
+
+<div class="container py-4">
+    <h2 class="ba-page-title">My bookings</h2>
+
+    @if (IsLoading)
+    {
+        <div class="ba-loading"><div class="ba-loading__spinner"></div></div>
+    }
+    else if (!Bookings.Any())
+    {
+        <div class="ba-empty-state">
+            <div class="ba-empty-state__icon">✈</div>
+            <h4>No bookings yet</h4>
+            <p>Your upcoming and past flights will appear here.</p>
+            <a href="/" class="btn btn-ba-primary">Book a flight</a>
+        </div>
+    }
+    else
+    {
+        <!-- Filter tabs -->
+        <div class="ba-tabs mb-4">
+            <button class="ba-tab @(Filter == "all" ? "active" : "")" @onclick="() => Filter = "all"">All</button>
+            <button class="ba-tab @(Filter == "upcoming" ? "active" : "")" @onclick="() => Filter = "upcoming"">Upcoming</button>
+            <button class="ba-tab @(Filter == "past" ? "active" : "")" @onclick="() => Filter = "past"">Past</button>
+            <button class="ba-tab @(Filter == "cancelled" ? "active" : "")" @onclick="() => Filter = "cancelled"">Cancelled</button>
+        </div>
+
+        @foreach (var booking in FilteredBookings)
+        {
+            <div class="ba-booking-card @(booking.Status == BookingStatus.Cancelled ? "ba-booking-card--cancelled" : "")">
+                <div class="ba-booking-card__header">
+                    <div>
+                        <span class="ba-booking-ref-label">Booking reference</span>
+                        <span class="ba-booking-ref-value">@booking.BookingReference</span>
+                    </div>
+                    <div class="ba-booking-status ba-booking-status--@booking.Status.ToString().ToLower()">
+                        @booking.Status
+                    </div>
+                </div>
+
+                @foreach (var flightGroup in booking.Passengers
+                    .GroupBy(p => new { p.FlightId, p.Direction })
+                    .OrderBy(g => g.Key.Direction))
+                {
+                    var fp = flightGroup.First();
+                    <div class="ba-booking-flight">
+                        <div class="ba-booking-flight__route">
+                            <span class="ba-booking-direction">@flightGroup.Key.Direction</span>
+                            <div class="ba-booking-times">
+                                <span>@fp.Flight.DepartureTime.ToString("HH:mm")</span>
+                                <span class="ba-booking-code">@fp.Flight.Route.OriginAirport.IATACode</span>
+                            </div>
+                            <div class="ba-booking-line">
+                                <div>✈</div>
+                                <small>@fp.Flight.FlightNumber</small>
+                            </div>
+                            <div class="ba-booking-times">
+                                <span>@fp.Flight.ArrivalTime.ToString("HH:mm")</span>
+                                <span class="ba-booking-code">@fp.Flight.Route.DestinationAirport.IATACode</span>
+                            </div>
+                        </div>
+                        <div class="ba-booking-flight__date">
+                            @fp.Flight.DepartureTime.ToString("ddd d MMM yyyy")
+                        </div>
+                        <div class="ba-booking-flight__passengers">
+                            @flightGroup.Count() passenger@(flightGroup.Count() > 1 ? "s" : "")
+                            @if (fp.AircraftSeat != null)
+                            {
+                                <span> · Seat @fp.AircraftSeat.SeatNumber</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="ba-booking-card__footer">
+                    <div class="ba-booking-total">
+                        Total: <strong>£@(booking.TotalPrice + booking.TaxAmount).ToString("N2"))</strong>
+                    </div>
+                    <div class="ba-booking-actions">
+                        <a href="/booking-confirmation/@booking.BookingReference"
+                           class="btn btn-ba-outline btn-sm">View receipt</a>
+                        @if (booking.Status == BookingStatus.Confirmed &&
+                             booking.Passengers.Any(p => p.Flight.DepartureTime > DateTime.UtcNow.AddHours(24)))
+                        {
+                            <button class="btn btn-outline-danger btn-sm ms-2"
+                                    @onclick="() => CancelConfirm = booking.Id">
+                                Cancel booking
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                @if (CancelConfirm == booking.Id)
+                {
+                    <div class="ba-cancel-confirm">
+                        <p>Are you sure you want to cancel this booking?</p>
+                        <button class="btn btn-danger btn-sm" @onclick="() => CancelBooking(booking.Id)">Yes, cancel</button>
+                        <button class="btn btn-ba-outline btn-sm ms-2" @onclick="() => CancelConfirm = 0">No, keep booking</button>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<Booking> Bookings = new();
+    private bool IsLoading = true;
+    private string Filter = "all";
+    private int CancelConfirm;
+
+    private IEnumerable<Booking> FilteredBookings => Filter switch
+    {
+        "upcoming" => Bookings.Where(b =>
+            b.Status != BookingStatus.Cancelled &&
+            b.Passengers.Any(p => p.Flight.DepartureTime > DateTime.UtcNow)),
+        "past" => Bookings.Where(b =>
+            b.Status != BookingStatus.Cancelled &&
+            b.Passengers.All(p => p.Flight.DepartureTime <= DateTime.UtcNow)),
+        "cancelled" => Bookings.Where(b => b.Status == BookingStatus.Cancelled),
+        _ => Bookings
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        { Nav.NavigateTo("/account/login"); return; }
+
+        Bookings = await BookingRepo.GetUserBookingsAsync(userId);
+        IsLoading = false;
+    }
+
+    private async Task CancelBooking(int bookingId)
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value!;
+
+        await BookingRepo.CancelBookingAsync(bookingId, userId);
+        Bookings = await BookingRepo.GetUserBookingsAsync(userId);
+        CancelConfirm = 0;
+    }
+}

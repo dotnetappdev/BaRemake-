@@ -1,0 +1,118 @@
+@page "/account/login"
+@rendermode InteractiveServer
+@using BaRemake.Shared.DTOs
+@using BaRemake.Shared.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Nav
+
+<PageTitle>Sign In – BaRemake</PageTitle>
+
+<div class="ba-auth-page">
+    <div class="ba-auth-card">
+        <div class="ba-auth-card__header">
+            <div class="ba-auth-logo">✈ BaRemake</div>
+            <h2>Sign in</h2>
+            <p>Don't have an account? <a href="/account/register">Register</a></p>
+        </div>
+
+        <div class="ba-auth-card__body">
+            <div class="mb-3">
+                <label class="form-label">Email address</label>
+                <input type="email" class="form-control form-control-lg"
+                       @bind="Email" placeholder="your@email.com"
+                       @onkeydown="OnKeyDown" autofocus />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <div class="ba-password-field">
+                    <input type="@(ShowPassword ? "text" : "password")"
+                           class="form-control form-control-lg"
+                           @bind="Password" placeholder="Password"
+                           @onkeydown="OnKeyDown" />
+                    <button type="button" class="ba-password-toggle"
+                            @onclick="() => ShowPassword = !ShowPassword">
+                        @(ShowPassword ? "🙈" : "👁")
+                    </button>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" @bind="RememberMe" />
+                    <label class="form-check-label" for="remember">Remember me</label>
+                </div>
+                <a href="/account/forgot-password" class="text-muted small">Forgot password?</a>
+            </div>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger">@ErrorMessage</div>
+            }
+
+            <button class="btn btn-ba-primary btn-lg w-100"
+                    @onclick="SignIn"
+                    disabled="@IsLoading">
+                @if (IsLoading)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Sign in
+            </button>
+
+            <div class="ba-auth-divider mt-3"><span>Demo accounts</span></div>
+            <div class="ba-demo-accounts">
+                <button class="ba-demo-btn" @onclick="() => FillDemo("admin@baremake.com", "Admin123!")">
+                    🔑 Admin
+                </button>
+                <button class="ba-demo-btn" @onclick="() => FillDemo("john.smith@example.com", "Customer123!")">
+                    👤 Customer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    private string Email = string.Empty;
+    private string Password = string.Empty;
+    private bool RememberMe;
+    private bool IsLoading;
+    private bool ShowPassword;
+    private string? ErrorMessage;
+
+    private async Task SignIn()
+    {
+        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+        { ErrorMessage = "Please enter your email and password."; return; }
+
+        IsLoading = true;
+        ErrorMessage = null;
+
+        var result = await SignInManager.PasswordSignInAsync(
+            Email, Password, RememberMe, lockoutOnFailure: true);
+
+        IsLoading = false;
+
+        if (result.Succeeded)
+            Nav.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+        else if (result.IsLockedOut)
+            ErrorMessage = "Account locked. Please try again in 15 minutes.";
+        else
+            ErrorMessage = "Invalid email or password.";
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SignIn();
+    }
+
+    private void FillDemo(string email, string pass)
+    {
+        Email = email;
+        Password = pass;
+    }
+}

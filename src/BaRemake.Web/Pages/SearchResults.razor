@@ -1,0 +1,153 @@
+@page "/search-results"
+@rendermode InteractiveServer
+@using BaRemake.Data.Repositories
+@using BaRemake.Shared.DTOs
+@using BaRemake.Shared.Enums
+@using BaRemake.Web.Services
+@inject BookingSessionService BookingSession
+@inject IFlightRepository FlightRepo
+@inject NavigationManager Nav
+
+<PageTitle>Flight Results – BaRemake</PageTitle>
+
+<div class="container py-4">
+    <!-- Step indicator -->
+    <BookingSteps CurrentStep="1" IsReturn="@BookingSession.Session.SearchRequest.IsReturnTrip" />
+
+    <!-- Summary bar -->
+    <div class="ba-results-bar">
+        <div class="ba-results-bar__route">
+            <strong>@BookingSession.Session.SearchRequest.OriginCode</strong>
+            <span> → </span>
+            <strong>@BookingSession.Session.SearchRequest.DestinationCode</strong>
+        </div>
+        <div class="ba-results-bar__details">
+            <span>@BookingSession.Session.SearchRequest.DepartureDate.ToString("ddd d MMM yyyy")</span>
+            <span class="mx-2">·</span>
+            <span>@BookingSession.Session.SearchRequest.TotalPassengers passenger@(BookingSession.Session.SearchRequest.TotalPassengers > 1 ? "s" : "")</span>
+            <span class="mx-2">·</span>
+            <span>@BookingSession.Session.SearchRequest.CabinClass</span>
+        </div>
+        <a href="/" class="btn btn-ba-outline btn-sm">Modify search</a>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="ba-loading">
+            <div class="ba-loading__spinner"></div>
+            <p>Searching for the best flights...</p>
+        </div>
+    }
+    else if (!OutboundFlights.Any())
+    {
+        <div class="ba-no-results">
+            <div class="ba-no-results__icon">✈</div>
+            <h3>No flights found</h3>
+            <p>No flights available for your chosen date. Try a different date or route.</p>
+            <a href="/" class="btn btn-ba-primary">New search</a>
+        </div>
+    }
+    else
+    {
+        <!-- Outbound flights -->
+        <div class="ba-flight-list-header">
+            <h2>
+                @if (BookingSession.Session.SearchRequest.IsReturnTrip && ShowingReturn)
+                {
+                    <span>Choose your return flight</span>
+                }
+                else
+                {
+                    <span>Choose your outbound flight</span>
+                }
+            </h2>
+            <span class="ba-flight-count">@CurrentFlights.Count flight@(CurrentFlights.Count != 1 ? "s" : "") found</span>
+        </div>
+
+        <!-- Sort bar -->
+        <div class="ba-sort-bar">
+            <span>Sort by:</span>
+            <button class="ba-sort-btn @(SortBy == "time" ? "active" : "")" @onclick="() => SortFlights("time")">Departure time</button>
+            <button class="ba-sort-btn @(SortBy == "price" ? "active" : "")" @onclick="() => SortFlights("price")">Price</button>
+            <button class="ba-sort-btn @(SortBy == "duration" ? "active" : "")" @onclick="() => SortFlights("duration")">Duration</button>
+        </div>
+
+        @foreach (var flight in CurrentFlights)
+        {
+            <FlightCard Flight="@flight"
+                        SelectedClass="@BookingSession.Session.SearchRequest.CabinClass"
+                        IsSelected="@(SelectedFlightId == flight.Id)"
+                        OnSelect="() => SelectFlight(flight)" />
+        }
+    }
+</div>
+
+@code {
+    private List<FlightDto> OutboundFlights = new();
+    private List<FlightDto> ReturnFlights = new();
+    private bool IsLoading = true;
+    private bool ShowingReturn;
+    private string SortBy = "time";
+    private int SelectedFlightId;
+
+    private List<FlightDto> CurrentFlights =>
+        ShowingReturn ? SortedFlights(ReturnFlights) : SortedFlights(OutboundFlights);
+
+    private List<FlightDto> SortedFlights(List<FlightDto> flights) => SortBy switch
+    {
+        "price" => flights.OrderBy(f => f.PriceForClass(BookingSession.Session.SearchRequest.CabinClass)).ToList(),
+        "duration" => flights.OrderBy(f => f.DurationMinutes).ToList(),
+        _ => flights.OrderBy(f => f.DepartureTime).ToList()
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var req = BookingSession.Session.SearchRequest;
+        if (string.IsNullOrEmpty(req.OriginCode))
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+        OutboundFlights = await FlightRepo.SearchFlightsAsync(
+            req.OriginCode, req.DestinationCode,
+            req.DepartureDate, req.TotalPassengers, req.CabinClass);
+
+        if (req.IsReturnTrip && req.ReturnDate.HasValue)
+            ReturnFlights = await FlightRepo.SearchFlightsAsync(
+                req.DestinationCode, req.OriginCode,
+                req.ReturnDate.Value, req.TotalPassengers, req.CabinClass);
+
+        IsLoading = false;
+    }
+
+    private void SortFlights(string by) => SortBy = by;
+
+    private void SelectFlight(FlightDto flight)
+    {
+        SelectedFlightId = flight.Id;
+        var req = BookingSession.Session.SearchRequest;
+
+        if (!ShowingReturn)
+        {
+            BookingSession.SelectOutboundFlight(flight);
+
+            if (req.IsReturnTrip && ReturnFlights.Any())
+            {
+                ShowingReturn = true;
+                SelectedFlightId = 0;
+            }
+            else
+            {
+                BookingSession.InitialisePassengers();
+                Nav.NavigateTo("/select-seats");
+            }
+        }
+        else
+        {
+            BookingSession.SelectReturnFlight(flight);
+            BookingSession.InitialisePassengers();
+            Nav.NavigateTo("/select-seats");
+        }
+    }
+}

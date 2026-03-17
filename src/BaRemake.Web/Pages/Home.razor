@@ -1,0 +1,274 @@
+@page "/"
+@rendermode InteractiveServer
+@using BaRemake.Shared.DTOs
+@using BaRemake.Shared.Enums
+@using BaRemake.Web.Services
+@inject BookingSessionService BookingSession
+@inject NavigationManager Nav
+@inject AirportSearchService AirportSearch
+
+<PageTitle>BaRemake – Book Flights</PageTitle>
+
+<!-- Hero -->
+<div class="ba-hero">
+    <div class="ba-hero__overlay"></div>
+    <div class="ba-hero__content">
+        <h1 class="ba-hero__title">Fly with us today</h1>
+        <p class="ba-hero__subtitle">Experience British Airways style at your fingertips</p>
+    </div>
+</div>
+
+<!-- Search Box -->
+<div class="ba-search-wrapper">
+    <div class="container">
+        <div class="ba-search-box">
+            <!-- Trip type tabs -->
+            <div class="ba-search-tabs">
+                <button class="ba-search-tab @(IsOneWay ? "active" : "")"
+                        @onclick="() => { IsOneWay = true; Request.TripType = TripType.OneWay; }">
+                    One way
+                </button>
+                <button class="ba-search-tab @(!IsOneWay ? "active" : "")"
+                        @onclick="() => { IsOneWay = false; Request.TripType = TripType.Return; }">
+                    Return
+                </button>
+            </div>
+
+            <div class="ba-search-form">
+                <!-- Origin -->
+                <div class="ba-search-field ba-search-field--airport">
+                    <label>From</label>
+                    <div class="ba-airport-input">
+                        <input type="text" placeholder="City or airport"
+                               value="@OriginDisplay"
+                               @oninput="OnOriginInput"
+                               @onfocus="() => ShowOriginDropdown = true"
+                               @onblur="() => Task.Delay(200).ContinueWith(_ => { ShowOriginDropdown = false; InvokeAsync(StateHasChanged); })" />
+                        @if (!string.IsNullOrEmpty(Request.OriginCode))
+                        {
+                            <span class="ba-airport-code">@Request.OriginCode</span>
+                        }
+                        @if (ShowOriginDropdown && OriginResults.Any())
+                        {
+                            <div class="ba-airport-dropdown">
+                                @foreach (var airport in OriginResults)
+                                {
+                                    <div class="ba-airport-option" @onmousedown="() => SelectOrigin(airport)">
+                                        <span class="ba-airport-option__code">@airport.IATACode</span>
+                                        <span class="ba-airport-option__name">@airport.City, @airport.Country</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Swap button -->
+                <button class="ba-swap-btn" @onclick="SwapAirports" title="Swap airports">⇄</button>
+
+                <!-- Destination -->
+                <div class="ba-search-field ba-search-field--airport">
+                    <label>To</label>
+                    <div class="ba-airport-input">
+                        <input type="text" placeholder="City or airport"
+                               value="@DestinationDisplay"
+                               @oninput="OnDestinationInput"
+                               @onfocus="() => ShowDestDropdown = true"
+                               @onblur="() => Task.Delay(200).ContinueWith(_ => { ShowDestDropdown = false; InvokeAsync(StateHasChanged); })" />
+                        @if (!string.IsNullOrEmpty(Request.DestinationCode))
+                        {
+                            <span class="ba-airport-code">@Request.DestinationCode</span>
+                        }
+                        @if (ShowDestDropdown && DestResults.Any())
+                        {
+                            <div class="ba-airport-dropdown">
+                                @foreach (var airport in DestResults)
+                                {
+                                    <div class="ba-airport-option" @onmousedown="() => SelectDestination(airport)">
+                                        <span class="ba-airport-option__code">@airport.IATACode</span>
+                                        <span class="ba-airport-option__name">@airport.City, @airport.Country</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Depart date -->
+                <div class="ba-search-field">
+                    <label>Depart</label>
+                    <input type="date"
+                           value="@Request.DepartureDate.ToString("yyyy-MM-dd")"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           @onchange="e => Request.DepartureDate = DateTime.Parse(e.Value!.ToString()!)" />
+                </div>
+
+                <!-- Return date -->
+                @if (!IsOneWay)
+                {
+                    <div class="ba-search-field">
+                        <label>Return</label>
+                        <input type="date"
+                               value="@(Request.ReturnDate?.ToString("yyyy-MM-dd") ?? "")"
+                               min="@Request.DepartureDate.ToString("yyyy-MM-dd")"
+                               @onchange="e => Request.ReturnDate = DateTime.Parse(e.Value!.ToString()!)" />
+                    </div>
+                }
+
+                <!-- Passengers -->
+                <div class="ba-search-field ba-search-field--narrow">
+                    <label>Passengers</label>
+                    <div class="ba-passenger-input">
+                        <button @onclick="() => { if (Request.Adults > 1) Request.Adults--; }">−</button>
+                        <span>@Request.Adults adult@(Request.Adults > 1 ? "s" : "")</span>
+                        <button @onclick="() => { if (Request.Adults < 9) Request.Adults++; }">+</button>
+                    </div>
+                </div>
+
+                <!-- Cabin class -->
+                <div class="ba-search-field ba-search-field--narrow">
+                    <label>Cabin</label>
+                    <select @bind="Request.CabinClass">
+                        <option value="@SeatClass.Economy">Economy</option>
+                        <option value="@SeatClass.Business">Business</option>
+                        <option value="@SeatClass.First">First</option>
+                    </select>
+                </div>
+
+                <!-- Search button -->
+                <div class="ba-search-field ba-search-field--action">
+                    <button class="btn btn-ba-primary btn-lg ba-search-btn"
+                            @onclick="Search"
+                            disabled="@IsSearching">
+                        @if (IsSearching)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Search flights
+                    </button>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(SearchError))
+            {
+                <div class="ba-search-error">@SearchError</div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Popular destinations -->
+<div class="container mt-5">
+    <h2 class="ba-section-title">Popular destinations</h2>
+    <div class="ba-destinations-grid">
+        @foreach (var dest in PopularDestinations)
+        {
+            <div class="ba-dest-card" @onclick="() => QuickSearch(dest.Code)">
+                <div class="ba-dest-card__flag">@dest.Flag</div>
+                <div class="ba-dest-card__info">
+                    <span class="ba-dest-card__city">@dest.City</span>
+                    <span class="ba-dest-card__code">@dest.Code</span>
+                </div>
+                <span class="ba-dest-card__from">from £@dest.FromPrice</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private FlightSearchRequest Request { get; set; } = new()
+    {
+        DepartureDate = DateTime.Today.AddDays(14),
+        Adults = 1,
+        CabinClass = SeatClass.Economy,
+        TripType = TripType.OneWay
+    };
+
+    private bool IsOneWay = true;
+    private bool IsSearching;
+    private string? SearchError;
+
+    private string OriginDisplay = string.Empty;
+    private string DestinationDisplay = string.Empty;
+    private bool ShowOriginDropdown;
+    private bool ShowDestDropdown;
+    private List<BaRemake.Shared.Models.Airport> OriginResults = new();
+    private List<BaRemake.Shared.Models.Airport> DestResults = new();
+
+    private record DestCard(string City, string Code, string Flag, int FromPrice);
+    private List<DestCard> PopularDestinations = new()
+    {
+        new("New York", "JFK", "🇺🇸", 299),
+        new("Paris", "CDG", "🇫🇷", 89),
+        new("Dubai", "DXB", "🇦🇪", 349),
+        new("Barcelona", "BCN", "🇪🇸", 109),
+        new("Singapore", "SIN", "🇸🇬", 699),
+        new("Rome", "FCO", "🇮🇹", 129),
+        new("Miami", "MIA", "🇺🇸", 399),
+        new("Amsterdam", "AMS", "🇳🇱", 79),
+    };
+
+    private async Task OnOriginInput(ChangeEventArgs e)
+    {
+        OriginDisplay = e.Value?.ToString() ?? string.Empty;
+        Request.OriginCode = string.Empty;
+        OriginResults = await AirportSearch.SearchAsync(OriginDisplay);
+        ShowOriginDropdown = OriginResults.Any();
+    }
+
+    private async Task OnDestinationInput(ChangeEventArgs e)
+    {
+        DestinationDisplay = e.Value?.ToString() ?? string.Empty;
+        Request.DestinationCode = string.Empty;
+        DestResults = await AirportSearch.SearchAsync(DestinationDisplay);
+        ShowDestDropdown = DestResults.Any();
+    }
+
+    private void SelectOrigin(BaRemake.Shared.Models.Airport a)
+    {
+        Request.OriginCode = a.IATACode;
+        OriginDisplay = $"{a.City} ({a.IATACode})";
+        ShowOriginDropdown = false;
+        OriginResults.Clear();
+    }
+
+    private void SelectDestination(BaRemake.Shared.Models.Airport a)
+    {
+        Request.DestinationCode = a.IATACode;
+        DestinationDisplay = $"{a.City} ({a.IATACode})";
+        ShowDestDropdown = false;
+        DestResults.Clear();
+    }
+
+    private void SwapAirports()
+    {
+        (Request.OriginCode, Request.DestinationCode) = (Request.DestinationCode, Request.OriginCode);
+        (OriginDisplay, DestinationDisplay) = (DestinationDisplay, OriginDisplay);
+    }
+
+    private async Task Search()
+    {
+        SearchError = null;
+        if (string.IsNullOrEmpty(Request.OriginCode))
+        { SearchError = "Please select a departure airport."; return; }
+        if (string.IsNullOrEmpty(Request.DestinationCode))
+        { SearchError = "Please select a destination airport."; return; }
+        if (Request.OriginCode == Request.DestinationCode)
+        { SearchError = "Origin and destination cannot be the same."; return; }
+        if (!IsOneWay && !Request.ReturnDate.HasValue)
+        { SearchError = "Please select a return date."; return; }
+
+        IsSearching = true;
+        BookingSession.StartNewSearch(Request);
+        Nav.NavigateTo("/search-results");
+    }
+
+    private void QuickSearch(string destCode)
+    {
+        Request.OriginCode = "LHR";
+        OriginDisplay = "London (LHR)";
+        Request.DestinationCode = destCode;
+        var dest = PopularDestinations.FirstOrDefault(d => d.Code == destCode);
+        if (dest != null) DestinationDisplay = $"{dest.City} ({dest.Code})";
+    }
+}

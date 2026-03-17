@@ -1,0 +1,152 @@
+@page "/admin"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Manager")]
+@using BaRemake.Data.Repositories
+@using BaRemake.Shared.DTOs
+@using BaRemake.Shared.Enums
+@inject IBookingRepository BookingRepo
+@inject IFlightRepository FlightRepo
+
+<PageTitle>Admin Dashboard – BaRemake</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="ba-page-title mb-0">Admin Dashboard</h2>
+        <span class="text-muted">@DateTime.Now.ToString("dddd d MMMM yyyy")</span>
+    </div>
+
+    @if (Stats == null)
+    {
+        <div class="ba-loading"><div class="ba-loading__spinner"></div></div>
+    }
+    else
+    {
+        <!-- KPI Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="ba-kpi-card ba-kpi-card--blue">
+                    <div class="ba-kpi-card__icon">✈</div>
+                    <div class="ba-kpi-card__data">
+                        <div class="ba-kpi-card__value">@Stats.TotalFlightsToday</div>
+                        <div class="ba-kpi-card__label">Flights today</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="ba-kpi-card ba-kpi-card--gold">
+                    <div class="ba-kpi-card__icon">🎫</div>
+                    <div class="ba-kpi-card__data">
+                        <div class="ba-kpi-card__value">@Stats.TotalBookingsToday</div>
+                        <div class="ba-kpi-card__label">Bookings today</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="ba-kpi-card ba-kpi-card--green">
+                    <div class="ba-kpi-card__icon">£</div>
+                    <div class="ba-kpi-card__data">
+                        <div class="ba-kpi-card__value">£@Stats.RevenueToday.ToString("N0")</div>
+                        <div class="ba-kpi-card__label">Revenue today</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="ba-kpi-card ba-kpi-card--orange">
+                    <div class="ba-kpi-card__icon">⏳</div>
+                    <div class="ba-kpi-card__data">
+                        <div class="ba-kpi-card__value">@Stats.PendingBookings</div>
+                        <div class="ba-kpi-card__label">Pending bookings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Recent bookings -->
+            <div class="col-lg-7">
+                <div class="ba-admin-card">
+                    <div class="ba-admin-card__header">
+                        <h5>Recent bookings</h5>
+                        <a href="/admin/bookings" class="btn btn-ba-outline btn-sm">View all</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table ba-admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Customer</th>
+                                    <th>Route</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var b in Stats.RecentBookings)
+                                {
+                                    <tr>
+                                        <td><code>@b.Reference</code></td>
+                                        <td>@b.CustomerName</td>
+                                        <td>@b.Route</td>
+                                        <td>£@b.Amount.ToString("N0")</td>
+                                        <td>
+                                            <span class="ba-status-badge ba-status-badge--@b.Status.ToString().ToLower()">
+                                                @b.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming flights + quick links -->
+            <div class="col-lg-5">
+                <div class="ba-admin-card mb-4">
+                    <div class="ba-admin-card__header">
+                        <h5>Quick links</h5>
+                    </div>
+                    <div class="ba-admin-links">
+                        <a href="/admin/flights" class="ba-admin-link">
+                            <span class="ba-admin-link__icon">✈</span>
+                            <span>Manage flights &amp; pricing</span>
+                        </a>
+                        <a href="/admin/bookings" class="ba-admin-link">
+                            <span class="ba-admin-link__icon">🎫</span>
+                            <span>All bookings</span>
+                        </a>
+                        <a href="/admin/hotels" class="ba-admin-link">
+                            <span class="ba-admin-link__icon">🏨</span>
+                            <span>Manage hotels</span>
+                        </a>
+                        <a href="/admin/users" class="ba-admin-link">
+                            <span class="ba-admin-link__icon">👥</span>
+                            <span>User management</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="ba-admin-card">
+                    <div class="ba-admin-card__header"><h5>Upcoming flights</h5></div>
+                    @foreach (var f in Stats.UpcomingFlights)
+                    {
+                        <div class="ba-upcoming-flight">
+                            <span class="ba-upcoming-flight__num">@f.FlightNumber</span>
+                            <span>@f.DepartureTime.ToString("HH:mm dd MMM")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private AdminDashboardDto? Stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Stats = await BookingRepo.GetDashboardStatsAsync();
+    }
+}

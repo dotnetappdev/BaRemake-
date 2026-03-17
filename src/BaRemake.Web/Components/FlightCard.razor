@@ -1,0 +1,80 @@
+@using BaRemake.Shared.DTOs
+@using BaRemake.Shared.Enums
+
+<div class="ba-flight-card @(IsSelected ? "ba-flight-card--selected" : "")"
+     @onclick="OnSelect">
+    <div class="ba-flight-card__main">
+        <!-- Times -->
+        <div class="ba-flight-card__times">
+            <div class="ba-flight-time">
+                <span class="ba-flight-time__time">@Flight.DepartureTime.ToString("HH:mm")</span>
+                <span class="ba-flight-time__code">@Flight.OriginCode</span>
+            </div>
+            <div class="ba-flight-card__route-line">
+                <div class="ba-route-line">
+                    <div class="ba-route-line__dot"></div>
+                    <div class="ba-route-line__line"></div>
+                    <div class="ba-route-line__plane">✈</div>
+                    <div class="ba-route-line__line"></div>
+                    <div class="ba-route-line__dot"></div>
+                </div>
+                <span class="ba-flight-duration">@Flight.DurationDisplay</span>
+                <span class="ba-flight-nonstop">Nonstop</span>
+            </div>
+            <div class="ba-flight-time ba-flight-time--right">
+                <span class="ba-flight-time__time">@Flight.ArrivalTime.ToString("HH:mm")</span>
+                <span class="ba-flight-time__code">@Flight.DestinationCode</span>
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="ba-flight-card__details">
+            <span class="ba-flight-number">@Flight.FlightNumber</span>
+            <span class="ba-flight-aircraft">@Flight.AircraftModel</span>
+            @if (Flight.Status != BaRemake.Shared.Enums.FlightStatus.Scheduled)
+            {
+                <span class="ba-flight-status ba-flight-status--@Flight.Status.ToString().ToLower()">
+                    @Flight.Status
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- Prices by cabin -->
+    <div class="ba-flight-card__prices">
+        @if (Flight.EconomyPrice.HasValue)
+        {
+            <div class="ba-price-cell @(SelectedClass == SeatClass.Economy ? "ba-price-cell--active" : "")">
+                <span class="ba-price-cell__class">Economy</span>
+                <span class="ba-price-cell__price">£@Flight.EconomyPrice.Value.ToString("N0")</span>
+                <span class="ba-price-cell__seats">@Flight.AvailableEconomySeats seats left</span>
+            </div>
+        }
+        @if (Flight.BusinessPrice.HasValue)
+        {
+            <div class="ba-price-cell @(SelectedClass == SeatClass.Business ? "ba-price-cell--active" : "")">
+                <span class="ba-price-cell__class">Business</span>
+                <span class="ba-price-cell__price">£@Flight.BusinessPrice.Value.ToString("N0")</span>
+                <span class="ba-price-cell__seats">@Flight.AvailableBusinessSeats seats left</span>
+            </div>
+        }
+
+        <div class="ba-flight-card__select-btn">
+            @if (IsSelected)
+            {
+                <button class="btn btn-ba-selected">✓ Selected</button>
+            }
+            else
+            {
+                <button class="btn btn-ba-primary">Select</button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public FlightDto Flight { get; set; } = null!;
+    [Parameter] public SeatClass SelectedClass { get; set; } = SeatClass.Economy;
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback OnSelect { get; set; }
+}

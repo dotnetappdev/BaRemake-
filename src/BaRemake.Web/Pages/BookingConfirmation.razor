@@ -1,0 +1,155 @@
+@page "/booking-confirmation/{Reference}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using BaRemake.Data.Repositories
+@using BaRemake.Shared.Enums
+@using BaRemake.Shared.Models
+@using BaRemake.Web.Services
+@inject IBookingRepository BookingRepo
+@inject BookingSessionService BookingSession
+@inject NavigationManager Nav
+
+<PageTitle>Booking Confirmed – BaRemake</PageTitle>
+
+<div class="container py-4">
+    @if (IsLoading)
+    {
+        <div class="ba-loading">
+            <div class="ba-loading__spinner"></div>
+        </div>
+    }
+    else if (Booking == null)
+    {
+        <div class="alert alert-danger">Booking not found.</div>
+    }
+    else
+    {
+        <!-- Confirmation banner -->
+        <div class="ba-confirmation-banner">
+            <div class="ba-confirmation-banner__icon">✓</div>
+            <div class="ba-confirmation-banner__text">
+                <h2>Booking confirmed!</h2>
+                <p>Your booking reference is:</p>
+                <div class="ba-booking-ref">@Booking.BookingReference</div>
+                <p class="mt-2">A confirmation will be sent to <strong>@Booking.ContactEmail</strong></p>
+            </div>
+        </div>
+
+        <!-- Receipt / Booking details -->
+        <div class="ba-receipt mt-4">
+            <div class="ba-receipt__header">
+                <div class="ba-receipt__logo">✈ BaRemake Airways</div>
+                <div class="ba-receipt__ref">
+                    <span>Booking ref</span>
+                    <strong>@Booking.BookingReference</strong>
+                </div>
+                <div class="ba-receipt__date">
+                    Booked: @Booking.CreatedAt.ToString("d MMM yyyy HH:mm")
+                </div>
+            </div>
+
+            @foreach (var flightGroup in Booking.Passengers
+                .GroupBy(p => new { p.FlightId, p.Direction })
+                .OrderBy(g => g.Key.Direction))
+            {
+                var firstPassenger = flightGroup.First();
+                var flight = firstPassenger.Flight;
+                <div class="ba-receipt__flight">
+                    <div class="ba-receipt__flight-header">
+                        <span class="ba-receipt__direction @(flightGroup.Key.Direction == "Return" ? "ba-receipt__direction--return" : "")">
+                            @flightGroup.Key.Direction
+                        </span>
+                        <span class="ba-receipt__flight-num">@flight.FlightNumber</span>
+                        <span>@flight.Route.OriginAirport.City (@flight.Route.OriginAirport.IATACode) → @flight.Route.DestinationAirport.City (@flight.Route.DestinationAirport.IATACode)</span>
+                    </div>
+                    <div class="ba-receipt__flight-times">
+                        <div>
+                            <strong>@flight.DepartureTime.ToString("HH:mm")</strong>
+                            <span>@flight.DepartureTime.ToString("ddd d MMM yyyy")</span>
+                            <span>@flight.Route.OriginAirport.Name</span>
+                        </div>
+                        <div class="ba-receipt__flight-arrow">✈</div>
+                        <div class="text-end">
+                            <strong>@flight.ArrivalTime.ToString("HH:mm")</strong>
+                            <span>@flight.ArrivalTime.ToString("ddd d MMM yyyy")</span>
+                            <span>@flight.Route.DestinationAirport.Name</span>
+                        </div>
+                    </div>
+
+                    <!-- Passengers on this flight -->
+                    <div class="ba-receipt__passengers">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Passenger</th>
+                                    <th>Seat</th>
+                                    <th>Class</th>
+                                    <th>Baggage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in flightGroup)
+                                {
+                                    <tr>
+                                        <td>@p.Title @p.FirstName @p.LastName</td>
+                                        <td>@(p.AircraftSeat?.SeatNumber ?? "Not selected")</td>
+                                        <td>@p.Class</td>
+                                        <td>@(p.HasCheckedBaggage ? "23kg hold" : "Cabin only")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <!-- Price breakdown -->
+            <div class="ba-receipt__price">
+                <div class="ba-receipt__price-line">
+                    <span>Flights</span>
+                    <span>£@Booking.TotalPrice.ToString("N2")</span>
+                </div>
+                <div class="ba-receipt__price-line">
+                    <span>Taxes & charges</span>
+                    <span>£@Booking.TaxAmount.ToString("N2")</span>
+                </div>
+                <div class="ba-receipt__price-line ba-receipt__price-line--total">
+                    <strong>Total paid</strong>
+                    <strong>£@((Booking.TotalPrice + Booking.TaxAmount).ToString("N2"))</strong>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="ba-receipt__status ba-receipt__status--@Booking.Status.ToString().ToLower()">
+                Status: @Booking.Status
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-3 mt-4 flex-wrap">
+            <button class="btn btn-ba-outline" onclick="window.print()">
+                🖨 Print / Save receipt
+            </button>
+            <a href="/my-bookings" class="btn btn-ba-primary">
+                View all my bookings
+            </a>
+            <a href="/" class="btn btn-ba-outline">
+                Book another flight
+            </a>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Reference { get; set; } = string.Empty;
+
+    private Booking? Booking;
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Booking = await BookingRepo.GetBookingByReferenceAsync(Reference);
+        IsLoading = false;
+        BookingSession.Reset();
+    }
+}

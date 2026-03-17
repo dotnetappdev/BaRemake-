@@ -1,0 +1,141 @@
+@page "/account/register"
+@rendermode InteractiveServer
+@using BaRemake.Shared.DTOs
+@using BaRemake.Shared.Models
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Nav
+
+<PageTitle>Register – BaRemake</PageTitle>
+
+<div class="ba-auth-page">
+    <div class="ba-auth-card">
+        <div class="ba-auth-card__header">
+            <div class="ba-auth-logo">✈ BaRemake</div>
+            <h2>Create account</h2>
+            <p>Already registered? <a href="/account/login">Sign in</a></p>
+        </div>
+
+        <div class="ba-auth-card__body">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Title</label>
+                    <select class="form-select" @bind="Dto.Title">
+                        <option>Mr</option><option>Mrs</option><option>Ms</option>
+                        <option>Miss</option><option>Dr</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">First name <span class="text-danger">*</span></label>
+                    <input class="form-control" @bind="Dto.FirstName" placeholder="First name" />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Last name <span class="text-danger">*</span></label>
+                    <input class="form-control" @bind="Dto.LastName" placeholder="Last name" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Email address <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" @bind="Dto.Email" placeholder="your@email.com" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Password <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" @bind="Dto.Password"
+                           placeholder="Min 8 characters, 1 uppercase, 1 digit" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Confirm password <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" @bind="Dto.ConfirmPassword" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Date of birth <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" @bind="Dto.DateOfBirth"
+                           max="@DateTime.Today.AddYears(-18).ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Phone number</label>
+                    <input type="tel" class="form-control" @bind="Dto.PhoneNumber" placeholder="+44 7700 900000" />
+                </div>
+            </div>
+
+            @if (Errors.Any())
+            {
+                <div class="alert alert-danger mt-3">
+                    <ul class="mb-0">
+                        @foreach (var err in Errors)
+                        {
+                            <li>@err</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <button class="btn btn-ba-primary btn-lg w-100 mt-4"
+                    @onclick="Register" disabled="@IsLoading">
+                @if (IsLoading) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                Create my account
+            </button>
+
+            <p class="text-center mt-3 small text-muted">
+                By registering you agree to our
+                <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterDto Dto { get; set; } = new()
+    {
+        DateOfBirth = DateTime.Today.AddYears(-30),
+        Title = "Mr"
+    };
+    private List<string> Errors { get; set; } = new();
+    private bool IsLoading;
+
+    private async Task Register()
+    {
+        Errors.Clear();
+
+        if (string.IsNullOrWhiteSpace(Dto.FirstName)) Errors.Add("First name is required.");
+        if (string.IsNullOrWhiteSpace(Dto.LastName)) Errors.Add("Last name is required.");
+        if (string.IsNullOrWhiteSpace(Dto.Email)) Errors.Add("Email is required.");
+        if (Dto.Password != Dto.ConfirmPassword) Errors.Add("Passwords do not match.");
+        if (Dto.DateOfBirth > DateTime.Today.AddYears(-18)) Errors.Add("You must be 18 or older.");
+
+        if (Errors.Any()) return;
+
+        IsLoading = true;
+        var user = new ApplicationUser
+        {
+            UserName = Dto.Email,
+            Email = Dto.Email,
+            FirstName = Dto.FirstName,
+            LastName = Dto.LastName,
+            Title = Dto.Title,
+            DateOfBirth = Dto.DateOfBirth,
+            PhoneNumber = Dto.PhoneNumber,
+            EmailConfirmed = true
+        };
+
+        var result = await UserManager.CreateAsync(user, Dto.Password);
+        if (!result.Succeeded)
+        {
+            Errors.AddRange(result.Errors.Select(e => e.Description));
+            IsLoading = false;
+            return;
+        }
+
+        await UserManager.AddToRoleAsync(user, "Customer");
+        await UserManager.AddClaimsAsync(user, new[]
+        {
+            new System.Security.Claims.Claim("FullName", user.FullName),
+            new System.Security.Claims.Claim("FirstName", user.FirstName),
+            new System.Security.Claims.Claim("LastName", user.LastName),
+            new System.Security.Claims.Claim("IsAdmin", "false")
+        });
+
+        await SignInManager.SignInAsync(user, isPersistent: false);
+        Nav.NavigateTo("/", forceLoad: true);
+    }
+}

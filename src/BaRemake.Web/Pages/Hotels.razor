@@ -1,0 +1,290 @@
+@page "/hotels"
+@rendermode InteractiveServer
+@using BaRemake.Data
+@using BaRemake.Shared.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
+
+<PageTitle>Hotels – BaRemake</PageTitle>
+
+<div class="ba-hero" style="min-height:160px;">
+    <div class="ba-hero__content">
+        <h1 class="ba-hero__title">Find your perfect hotel</h1>
+        <p class="ba-hero__subtitle">Over 500 hotels worldwide – from city breaks to beach resorts</p>
+    </div>
+</div>
+
+<!-- Hotel search form -->
+<div class="ba-search-wrapper pb-4">
+    <div class="container">
+        <div class="ba-search-box">
+            <div class="ba-search-form">
+                <div class="ba-search-field ba-search-field--airport">
+                    <label>Destination</label>
+                    <input type="text" placeholder="City or hotel name"
+                           @bind="SearchCity" @bind:event="oninput"
+                           @bind:after="OnSearchChanged" />
+                </div>
+                <div class="ba-search-field">
+                    <label>Check in</label>
+                    <input type="date" @bind="CheckIn"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="ba-search-field">
+                    <label>Check out</label>
+                    <input type="date" @bind="CheckOut"
+                           min="@CheckIn.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="ba-search-field ba-search-field--narrow">
+                    <label>Guests</label>
+                    <div class="ba-passenger-input">
+                        <button @onclick="() => { if (Guests > 1) Guests--; }">−</button>
+                        <span>@Guests</span>
+                        <button @onclick="() => { if (Guests < 10) Guests++; }">+</button>
+                    </div>
+                </div>
+                <div class="ba-search-field ba-search-field--narrow">
+                    <label>Rooms</label>
+                    <div class="ba-passenger-input">
+                        <button @onclick="() => { if (Rooms > 1) Rooms--; }">−</button>
+                        <span>@Rooms</span>
+                        <button @onclick="() => { if (Rooms < 5) Rooms++; }">+</button>
+                    </div>
+                </div>
+                <div class="ba-search-field ba-search-field--action">
+                    <button class="btn btn-ba-primary btn-lg ba-search-btn" @onclick="SearchHotels">
+                        Search hotels
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Filters sidebar -->
+        <div class="col-lg-3">
+            <div class="ba-filter-panel">
+                <h6 class="ba-filter-title">Filter results</h6>
+
+                <!-- Star rating -->
+                <div class="ba-filter-section">
+                    <label class="ba-filter-label">Star rating</label>
+                    @for (int s = 5; s >= 1; s--)
+                    {
+                        var stars = s;
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="star_@stars"
+                                   @bind="StarFilters[stars]"
+                                   @bind:after="ApplyFilters" />
+                            <label class="form-check-label" for="star_@stars">
+                                @string.Concat(Enumerable.Repeat("★", stars))
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <!-- Price range -->
+                <div class="ba-filter-section">
+                    <label class="ba-filter-label">Price per night</label>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="number" class="form-control form-control-sm"
+                               @bind="MinPrice" placeholder="Min" />
+                        <span>–</span>
+                        <input type="number" class="form-control form-control-sm"
+                               @bind="MaxPrice" placeholder="Max" />
+                    </div>
+                    <button class="btn btn-ba-outline btn-sm mt-2 w-100" @onclick="ApplyFilters">Apply</button>
+                </div>
+
+                <!-- Amenities -->
+                <div class="ba-filter-section">
+                    <label class="ba-filter-label">Amenities</label>
+                    <div class="form-check"><input type="checkbox" class="form-check-input" @bind="FilterPool" @bind:after="ApplyFilters" /><label class="form-check-label">Swimming pool</label></div>
+                    <div class="form-check"><input type="checkbox" class="form-check-input" @bind="FilterSpa" @bind:after="ApplyFilters" /><label class="form-check-label">Spa</label></div>
+                    <div class="form-check"><input type="checkbox" class="form-check-input" @bind="FilterGym" @bind:after="ApplyFilters" /><label class="form-check-label">Gym</label></div>
+                    <div class="form-check"><input type="checkbox" class="form-check-input" @bind="FilterWifi" @bind:after="ApplyFilters" /><label class="form-check-label">Free Wi-Fi</label></div>
+                    <div class="form-check"><input type="checkbox" class="form-check-input" @bind="FilterBreakfast" @bind:after="ApplyFilters" /><label class="form-check-label">Breakfast included</label></div>
+                    <div class="form-check"><input type="checkbox" class="form-check-input" @bind="FilterParking" @bind:after="ApplyFilters" /><label class="form-check-label">Free parking</label></div>
+                    <div class="form-check"><input type="checkbox" class="form-check-input" @bind="FilterPets" @bind:after="ApplyFilters" /><label class="form-check-label">Pet friendly</label></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hotel results -->
+        <div class="col-lg-9">
+            @if (IsLoading)
+            {
+                <div class="ba-loading"><div class="ba-loading__spinner"></div></div>
+            }
+            else
+            {
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">@FilteredHotels.Count hotel@(FilteredHotels.Count != 1 ? "s" : "") found in <strong>@(string.IsNullOrEmpty(SearchCity) ? "all destinations" : SearchCity)</strong></h5>
+                    <select class="form-select form-select-sm w-auto" @bind="SortBy" @bind:after="ApplyFilters">
+                        <option value="rating">Top rated</option>
+                        <option value="price_asc">Price: low to high</option>
+                        <option value="price_desc">Price: high to low</option>
+                        <option value="stars">Stars</option>
+                    </select>
+                </div>
+
+                @foreach (var hotel in FilteredHotels)
+                {
+                    <div class="ba-hotel-card">
+                        <div class="ba-hotel-card__image">
+                            @if (hotel.IsFeatured)
+                            {
+                                <span class="ba-hotel-badge ba-hotel-badge--featured">Featured</span>
+                            }
+                            <div class="ba-hotel-card__image-placeholder">🏨</div>
+                        </div>
+                        <div class="ba-hotel-card__content">
+                            <div class="ba-hotel-card__header">
+                                <div>
+                                    <h5 class="ba-hotel-name">@hotel.Name</h5>
+                                    <div class="ba-hotel-stars">
+                                        @string.Concat(Enumerable.Repeat("★", hotel.StarRating))
+                                        <span class="ba-hotel-category">@hotel.Category</span>
+                                    </div>
+                                    <div class="ba-hotel-location">📍 @hotel.City, @hotel.Country</div>
+                                </div>
+                                <div class="ba-hotel-score">
+                                    <div class="ba-score-badge">@hotel.ReviewScore.ToString("F1")</div>
+                                    <div class="ba-score-label">@GetScoreLabel(hotel.ReviewScore)</div>
+                                    <div class="ba-review-count">@hotel.ReviewCount reviews</div>
+                                </div>
+                            </div>
+
+                            <!-- Amenities -->
+                            <div class="ba-hotel-amenities">
+                                @if (hotel.HasFreeWifi) { <span class="ba-amenity">📶 Free Wi-Fi</span> }
+                                @if (hotel.HasPool) { <span class="ba-amenity">🏊 Pool</span> }
+                                @if (hotel.HasSpa) { <span class="ba-amenity">💆 Spa</span> }
+                                @if (hotel.HasGym) { <span class="ba-amenity">🏋 Gym</span> }
+                                @if (hotel.HasRestaurant) { <span class="ba-amenity">🍽 Restaurant</span> }
+                                @if (hotel.HasParking) { <span class="ba-amenity">🅿 Parking</span> }
+                                @if (hotel.IsPetFriendly) { <span class="ba-amenity">🐾 Pet-friendly</span> }
+                                @if (hotel.HasAirportShuttle) { <span class="ba-amenity">🚌 Airport shuttle</span> }
+                            </div>
+
+                            <!-- Rooms summary -->
+                            @if (hotel.Rooms.Any())
+                            {
+                                <div class="ba-hotel-rooms-preview">
+                                    @foreach (var room in hotel.Rooms.Take(2))
+                                    {
+                                        <div class="ba-room-preview">
+                                            <span>@room.RoomType</span>
+                                            @if (room.IncludesBreakfast) { <span class="text-success ms-1">🍳 Breakfast</span> }
+                                            @if (room.HasBalcony) { <span class="ms-1">🌅 Balcony</span> }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="ba-hotel-card__price">
+                            <div class="ba-hotel-price-from">from</div>
+                            <div class="ba-hotel-price">
+                                £@(hotel.Rooms.Any() ? hotel.Rooms.Min(r => r.PricePerNight).ToString("N0") : "?")
+                            </div>
+                            <div class="ba-hotel-price-per">per night</div>
+                            @if (Nights > 0)
+                            {
+                                <div class="ba-hotel-price-total">
+                                    £@(hotel.Rooms.Any() ? (hotel.Rooms.Min(r => r.PricePerNight) * Nights).ToString("N0") : "?") total
+                                </div>
+                            }
+                            <button class="btn btn-ba-primary mt-2"
+                                    @onclick="() => Nav.NavigateTo($"/hotels/{hotel.Id}?checkin={CheckIn:yyyy-MM-dd}&checkout={CheckOut:yyyy-MM-dd}&guests={Guests}")">
+                                View rooms
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Hotel> AllHotels = new();
+    private List<Hotel> FilteredHotels = new();
+    private bool IsLoading = true;
+    private string SearchCity = string.Empty;
+    private DateTime CheckIn = DateTime.Today.AddDays(14);
+    private DateTime CheckOut = DateTime.Today.AddDays(21);
+    private int Guests = 2;
+    private int Rooms = 1;
+    private int Nights => Math.Max(0, (CheckOut - CheckIn).Days);
+
+    // Filters
+    private Dictionary<int, bool> StarFilters = new() { [1] = false, [2] = false, [3] = false, [4] = false, [5] = false };
+    private decimal MinPrice = 0;
+    private decimal MaxPrice = 2000;
+    private bool FilterPool, FilterSpa, FilterGym, FilterWifi, FilterBreakfast, FilterParking, FilterPets;
+    private string SortBy = "rating";
+
+    protected override async Task OnInitializedAsync()
+    {
+        AllHotels = await Db.Hotels
+            .Include(h => h.Rooms.Where(r => r.IsActive))
+            .Where(h => h.IsActive)
+            .ToListAsync();
+
+        FilteredHotels = AllHotels.ToList();
+        IsLoading = false;
+    }
+
+    private Task OnSearchChanged() { ApplyFilters(); return Task.CompletedTask; }
+
+    private void SearchHotels() => ApplyFilters();
+
+    private void ApplyFilters()
+    {
+        var q = AllHotels.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(SearchCity))
+            q = q.Where(h => h.City.Contains(SearchCity, StringComparison.OrdinalIgnoreCase) ||
+                              h.Country.Contains(SearchCity, StringComparison.OrdinalIgnoreCase) ||
+                              h.Name.Contains(SearchCity, StringComparison.OrdinalIgnoreCase));
+
+        var activeStars = StarFilters.Where(kv => kv.Value).Select(kv => kv.Key).ToList();
+        if (activeStars.Any()) q = q.Where(h => activeStars.Contains(h.StarRating));
+
+        if (FilterPool) q = q.Where(h => h.HasPool);
+        if (FilterSpa) q = q.Where(h => h.HasSpa);
+        if (FilterGym) q = q.Where(h => h.HasGym);
+        if (FilterWifi) q = q.Where(h => h.HasFreeWifi);
+        if (FilterParking) q = q.Where(h => h.HasParking);
+        if (FilterPets) q = q.Where(h => h.IsPetFriendly);
+        if (FilterBreakfast) q = q.Where(h => h.Rooms.Any(r => r.IncludesBreakfast));
+
+        if (MaxPrice > 0)
+            q = q.Where(h => !h.Rooms.Any() || h.Rooms.Min(r => r.PricePerNight) <= MaxPrice);
+        if (MinPrice > 0)
+            q = q.Where(h => !h.Rooms.Any() || h.Rooms.Max(r => r.PricePerNight) >= MinPrice);
+
+        q = SortBy switch
+        {
+            "price_asc" => q.OrderBy(h => h.Rooms.Any() ? h.Rooms.Min(r => r.PricePerNight) : decimal.MaxValue),
+            "price_desc" => q.OrderByDescending(h => h.Rooms.Any() ? h.Rooms.Max(r => r.PricePerNight) : 0),
+            "stars" => q.OrderByDescending(h => h.StarRating),
+            _ => q.OrderByDescending(h => h.ReviewScore)
+        };
+
+        FilteredHotels = q.ToList();
+    }
+
+    private static string GetScoreLabel(decimal score) => score switch
+    {
+        >= 9.0m => "Exceptional",
+        >= 8.0m => "Excellent",
+        >= 7.0m => "Very Good",
+        >= 6.0m => "Good",
+        _ => "OK"
+    };
+}

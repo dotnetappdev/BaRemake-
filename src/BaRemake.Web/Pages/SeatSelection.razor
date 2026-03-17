@@ -1,0 +1,118 @@
+@page "/select-seats"
+@rendermode InteractiveServer
+@using BaRemake.Data.Repositories
+@using BaRemake.Shared.DTOs
+@using BaRemake.Shared.Enums
+@using BaRemake.Web.Services
+@inject BookingSessionService BookingSession
+@inject IFlightRepository FlightRepo
+@inject NavigationManager Nav
+
+<PageTitle>Select Seats – BaRemake</PageTitle>
+
+<div class="container py-4">
+    <BookingSteps CurrentStep="@(BookingSession.Session.SearchRequest.IsReturnTrip ? 4 : 3)"
+                  IsReturn="@BookingSession.Session.SearchRequest.IsReturnTrip" />
+
+    <h2 class="ba-page-title mb-4">Choose your seats</h2>
+
+    @if (BookingSession.Session.SelectedOutboundFlight == null)
+    {
+        <p>No flight selected. <a href="/">Start again</a></p>
+    }
+    else
+    {
+        <!-- Outbound seat selection -->
+        <div class="ba-seatmap-section">
+            <div class="ba-seatmap-section__header">
+                <div class="ba-seatmap-flight-info">
+                    <span class="ba-flight-badge">Outbound</span>
+                    <strong>@BookingSession.Session.SelectedOutboundFlight.FlightNumber</strong>
+                    <span>@BookingSession.Session.SelectedOutboundFlight.OriginCode → @BookingSession.Session.SelectedOutboundFlight.DestinationCode</span>
+                    <span>@BookingSession.Session.SelectedOutboundFlight.DepartureTime.ToString("ddd d MMM HH:mm")</span>
+                </div>
+            </div>
+
+            <SeatMap SeatMap="@OutboundSeatMap"
+                     MaxSeats="@BookingSession.Session.SearchRequest.TotalPassengers"
+                     OnSeatsChanged="seats => OnOutboundSeatsChanged(seats)" />
+        </div>
+
+        @if (BookingSession.Session.SearchRequest.IsReturnTrip &&
+             BookingSession.Session.SelectedReturnFlight != null)
+        {
+            <div class="ba-seatmap-section mt-5">
+                <div class="ba-seatmap-section__header">
+                    <div class="ba-seatmap-flight-info">
+                        <span class="ba-flight-badge ba-flight-badge--return">Return</span>
+                        <strong>@BookingSession.Session.SelectedReturnFlight.FlightNumber</strong>
+                        <span>@BookingSession.Session.SelectedReturnFlight.OriginCode → @BookingSession.Session.SelectedReturnFlight.DestinationCode</span>
+                        <span>@BookingSession.Session.SelectedReturnFlight.DepartureTime.ToString("ddd d MMM HH:mm")</span>
+                    </div>
+                </div>
+
+                <SeatMap SeatMap="@ReturnSeatMap"
+                         MaxSeats="@BookingSession.Session.SearchRequest.TotalPassengers"
+                         OnSeatsChanged="seats => OnReturnSeatsChanged(seats)" />
+            </div>
+        }
+
+        <!-- Skip / Continue -->
+        <div class="ba-seatmap-actions mt-4">
+            <button class="btn btn-ba-outline" @onclick="SkipSeatSelection">
+                Skip – choose later
+            </button>
+            <button class="btn btn-ba-primary" @onclick="Continue">
+                Continue to passenger details →
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private SeatMapDto? OutboundSeatMap;
+    private SeatMapDto? ReturnSeatMap;
+    private List<SeatDto> SelectedOutboundSeats = new();
+    private List<SeatDto> SelectedReturnSeats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (BookingSession.Session.SelectedOutboundFlight == null)
+        { Nav.NavigateTo("/"); return; }
+
+        OutboundSeatMap = await FlightRepo.GetSeatMapAsync(
+            BookingSession.Session.SelectedOutboundFlight.Id);
+
+        if (BookingSession.Session.SelectedReturnFlight != null)
+            ReturnSeatMap = await FlightRepo.GetSeatMapAsync(
+                BookingSession.Session.SelectedReturnFlight.Id);
+    }
+
+    private void OnOutboundSeatsChanged(List<SeatDto> seats) =>
+        SelectedOutboundSeats = seats;
+
+    private void OnReturnSeatsChanged(List<SeatDto> seats) =>
+        SelectedReturnSeats = seats;
+
+    private void SkipSeatSelection()
+    {
+        BookingSession.Session.SelectedOutboundSeatIds.Clear();
+        BookingSession.Session.SelectedReturnSeatIds.Clear();
+        Nav.NavigateTo("/passenger-details");
+    }
+
+    private void Continue()
+    {
+        if (SelectedOutboundSeats.Any())
+            BookingSession.SetOutboundSeats(
+                SelectedOutboundSeats.Select(s => s.Id).ToList(),
+                SelectedOutboundSeats.Select(s => s.SeatNumber).ToList());
+
+        if (SelectedReturnSeats.Any())
+            BookingSession.SetReturnSeats(
+                SelectedReturnSeats.Select(s => s.Id).ToList(),
+                SelectedReturnSeats.Select(s => s.SeatNumber).ToList());
+
+        Nav.NavigateTo("/passenger-details");
+    }
+}

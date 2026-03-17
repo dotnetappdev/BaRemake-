@@ -1,0 +1,228 @@
+@page "/payment"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using BaRemake.Data.Repositories
+@using BaRemake.Shared.DTOs
+@using BaRemake.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject BookingSessionService BookingSession
+@inject IBookingRepository BookingRepo
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthProvider
+
+<PageTitle>Payment – BaRemake</PageTitle>
+
+<!-- Inject Stripe.js -->
+<HeadContent>
+    <script src="https://js.stripe.com/v3/"></script>
+</HeadContent>
+
+<div class="container py-4">
+    <BookingSteps CurrentStep="@(BookingSession.Session.SearchRequest.IsReturnTrip ? 6 : 5)"
+                  IsReturn="@BookingSession.Session.SearchRequest.IsReturnTrip" />
+
+    <h2 class="ba-page-title mb-4">Secure payment</h2>
+
+    <div class="row">
+        <!-- Payment form -->
+        <div class="col-lg-7">
+            <!-- Express checkout -->
+            <div class="ba-payment-section">
+                <h5 class="ba-payment-section__title">
+                    <span class="ba-payment-badge">Express checkout</span>
+                </h5>
+                <div class="ba-express-buttons">
+                    <button class="ba-express-btn ba-express-btn--apple" @onclick="() => HandleExpressPayment("apple")">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                        </svg>
+                        Pay with Apple Pay
+                    </button>
+                    <button class="ba-express-btn ba-express-btn--google" @onclick="() => HandleExpressPayment("google")">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Pay with Google Pay
+                    </button>
+                </div>
+                <div class="ba-divider"><span>or pay by card</span></div>
+            </div>
+
+            <!-- Card payment -->
+            <div class="ba-payment-section">
+                <h5 class="ba-payment-section__title">
+                    <span class="ba-payment-badge">Card details</span>
+                    <div class="ba-card-icons">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/40px-Mastercard-logo.svg.png" alt="Mastercard" height="20" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/60px-Visa_Inc._logo.svg.png" alt="Visa" height="20" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/36px-American_Express_logo_%282018%29.svg.png" alt="Amex" height="20" />
+                    </div>
+                </h5>
+
+                <!-- Stripe Elements will mount here -->
+                <div id="stripe-payment-element" class="ba-stripe-element"></div>
+
+                @if (!string.IsNullOrEmpty(PaymentError))
+                {
+                    <div class="alert alert-danger mt-3">@PaymentError</div>
+                }
+
+                <!-- T&Cs -->
+                <div class="ba-tcs mt-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="tcs" @bind="AcceptedTCs" />
+                        <label class="form-check-label" for="tcs">
+                            I agree to the <a href="#" target="_blank">Terms & Conditions</a> and
+                            <a href="#" target="_blank">Privacy Policy</a>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn btn-ba-primary btn-lg w-100 mt-4 ba-pay-btn"
+                        @onclick="ProcessPayment"
+                        disabled="@(IsProcessing || !AcceptedTCs)">
+                    @if (IsProcessing)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <span>Processing payment...</span>
+                    }
+                    else
+                    {
+                        <span>🔒 Pay £@((BookingSession.Session.TotalPrice + BookingSession.Session.TaxAmount).ToString("N2"))</span>
+                    }
+                </button>
+
+                <div class="ba-secure-badge mt-3">
+                    <span>🔒 Secured by Stripe · 256-bit SSL encryption</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order summary -->
+        <div class="col-lg-5">
+            <div class="ba-order-summary">
+                <h5>Order summary</h5>
+
+                @if (BookingSession.Session.SelectedOutboundFlight != null)
+                {
+                    <div class="ba-order-flight">
+                        <div class="ba-order-flight__badge">Outbound</div>
+                        <div class="ba-order-flight__details">
+                            <strong>@BookingSession.Session.SelectedOutboundFlight.FlightNumber</strong>
+                            <span>@BookingSession.Session.SelectedOutboundFlight.OriginCode → @BookingSession.Session.SelectedOutboundFlight.DestinationCode</span>
+                            <span>@BookingSession.Session.SelectedOutboundFlight.DepartureTime.ToString("ddd d MMM yyyy, HH:mm")</span>
+                        </div>
+                    </div>
+                }
+
+                @if (BookingSession.Session.SelectedReturnFlight != null)
+                {
+                    <div class="ba-order-flight mt-2">
+                        <div class="ba-order-flight__badge ba-order-flight__badge--return">Return</div>
+                        <div class="ba-order-flight__details">
+                            <strong>@BookingSession.Session.SelectedReturnFlight.FlightNumber</strong>
+                            <span>@BookingSession.Session.SelectedReturnFlight.OriginCode → @BookingSession.Session.SelectedReturnFlight.DestinationCode</span>
+                            <span>@BookingSession.Session.SelectedReturnFlight.DepartureTime.ToString("ddd d MMM yyyy, HH:mm")</span>
+                        </div>
+                    </div>
+                }
+
+                <hr />
+
+                @foreach (var p in BookingSession.Session.Passengers)
+                {
+                    <div class="ba-order-passenger">
+                        <span>@p.Title @p.FirstName @p.LastName</span>
+                        @if (!string.IsNullOrEmpty(p.OutboundSeatNumber))
+                        {
+                            <span class="ms-2 text-muted">Seat @p.OutboundSeatNumber</span>
+                        }
+                    </div>
+                }
+
+                <hr />
+
+                <div class="ba-price-line">
+                    <span>Flights</span>
+                    <span>£@BookingSession.Session.TotalPrice.ToString("N2")</span>
+                </div>
+                <div class="ba-price-line">
+                    <span>Taxes & charges</span>
+                    <span>£@BookingSession.Session.TaxAmount.ToString("N2")</span>
+                </div>
+                <div class="ba-price-line ba-price-line--total">
+                    <strong>Total due</strong>
+                    <strong>£@((BookingSession.Session.TotalPrice + BookingSession.Session.TaxAmount).ToString("N2"))</strong>
+                </div>
+                <p class="ba-price-note">Prices shown in British Pounds Sterling (GBP)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool IsProcessing;
+    private bool AcceptedTCs;
+    private string? PaymentError;
+
+    protected override void OnInitialized()
+    {
+        if (BookingSession.Session.SelectedOutboundFlight == null)
+            Nav.NavigateTo("/");
+    }
+
+    private async Task HandleExpressPayment(string method)
+    {
+        // In production: trigger Stripe Payment Request Button or Apple/Google Pay flow
+        // For demo, we simulate success
+        IsProcessing = true;
+        PaymentError = null;
+        StateHasChanged();
+        await Task.Delay(1500); // Simulate payment processing
+        await ConfirmBooking($"{method.ToUpper()}-DEMO-{DateTime.UtcNow.Ticks}");
+    }
+
+    private async Task ProcessPayment()
+    {
+        if (!AcceptedTCs)
+        { PaymentError = "Please accept the terms and conditions."; return; }
+
+        IsProcessing = true;
+        PaymentError = null;
+
+        // In production: call Stripe server-side to create PaymentIntent,
+        // then confirm via stripe.confirmPayment() in JS interop.
+        // For this demo we simulate payment success after 2 seconds.
+        await Task.Delay(2000);
+
+        var paymentRef = $"pi_demo_{Guid.NewGuid():N}";
+        await ConfirmBooking(paymentRef);
+    }
+
+    private async Task ConfirmBooking(string paymentRef)
+    {
+        try
+        {
+            var authState = await AuthProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(
+                System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            { PaymentError = "Session expired. Please log in again."; IsProcessing = false; return; }
+
+            BookingSession.Session.Passengers[0].IsLeadPassenger = true;
+            var booking = await BookingRepo.CreateBookingAsync(BookingSession.Session, userId);
+
+            // Store reference and redirect to confirmation
+            Nav.NavigateTo($"/booking-confirmation/{booking.BookingReference}");
+        }
+        catch (Exception ex)
+        {
+            PaymentError = $"Booking failed: {ex.Message}";
+            IsProcessing = false;
+        }
+    }
+}

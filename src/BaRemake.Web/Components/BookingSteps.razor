@@ -1,0 +1,39 @@
+@using BaRemake.Shared.Enums
+
+<div class="ba-booking-steps">
+    @{
+        var steps = IsReturn
+            ? new[] { "Search", "Outbound", "Return", "Seats", "Passengers", "Payment", "Confirm" }
+            : new[] { "Search", "Flights", "Seats", "Passengers", "Payment", "Confirm" };
+    }
+    @for (int i = 0; i < steps.Length; i++)
+    {
+        var step = i + 1;
+        var label = steps[i];
+        var state = step < CurrentStep ? "completed" : step == CurrentStep ? "active" : "pending";
+
+        <div class="ba-step ba-step--@state">
+            <div class="ba-step__dot">
+                @if (state == "completed")
+                {
+                    <span>✓</span>
+                }
+                else
+                {
+                    <span>@step</span>
+                }
+            </div>
+            <span class="ba-step__label">@label</span>
+        </div>
+
+        @if (i < steps.Length - 1)
+        {
+            <div class="ba-step__connector ba-step__connector--@(step < CurrentStep ? "completed" : "pending")"></div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public int CurrentStep { get; set; } = 1;
+    [Parameter] public bool IsReturn { get; set; }
+}

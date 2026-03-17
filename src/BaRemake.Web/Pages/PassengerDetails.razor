@@ -1,0 +1,209 @@
+@page "/passenger-details"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using BaRemake.Shared.DTOs
+@using BaRemake.Shared.Enums
+@using BaRemake.Web.Services
+@inject BookingSessionService BookingSession
+@inject NavigationManager Nav
+
+<PageTitle>Passenger Details – BaRemake</PageTitle>
+
+<div class="container py-4">
+    <BookingSteps CurrentStep="@(BookingSession.Session.SearchRequest.IsReturnTrip ? 5 : 4)"
+                  IsReturn="@BookingSession.Session.SearchRequest.IsReturnTrip" />
+
+    <h2 class="ba-page-title mb-4">Passenger details</h2>
+
+    @if (!BookingSession.Session.Passengers.Any())
+    {
+        <p>Session expired. <a href="/">Start again</a></p>
+    }
+    else
+    {
+        <div class="row">
+            <!-- Passengers form -->
+            <div class="col-lg-8">
+                @for (int i = 0; i < BookingSession.Session.Passengers.Count; i++)
+                {
+                    var idx = i;
+                    var passenger = BookingSession.Session.Passengers[idx];
+                    <div class="ba-passenger-card">
+                        <div class="ba-passenger-card__header">
+                            <h5>@(passenger.IsLeadPassenger ? "Lead passenger" : $"Passenger {idx + 1}")</h5>
+                            @if (!string.IsNullOrEmpty(passenger.OutboundSeatNumber))
+                            {
+                                <span class="ba-seat-badge">Seat: @passenger.OutboundSeatNumber</span>
+                            }
+                        </div>
+
+                        <div class="row g-3">
+                            <!-- Title -->
+                            <div class="col-md-2">
+                                <label class="form-label">Title</label>
+                                <select class="form-select" @bind="passenger.Title">
+                                    <option>Mr</option>
+                                    <option>Mrs</option>
+                                    <option>Ms</option>
+                                    <option>Miss</option>
+                                    <option>Dr</option>
+                                    <option>Prof</option>
+                                </select>
+                            </div>
+                            <!-- First name -->
+                            <div class="col-md-4">
+                                <label class="form-label">First name <span class="text-danger">*</span></label>
+                                <input class="form-control" placeholder="As shown on passport"
+                                       @bind="passenger.FirstName" required />
+                            </div>
+                            <!-- Last name -->
+                            <div class="col-md-6">
+                                <label class="form-label">Last name <span class="text-danger">*</span></label>
+                                <input class="form-control" placeholder="As shown on passport"
+                                       @bind="passenger.LastName" required />
+                            </div>
+                            <!-- Date of birth -->
+                            <div class="col-md-4">
+                                <label class="form-label">Date of birth <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control"
+                                       @bind="passenger.DateOfBirth"
+                                       max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <!-- Nationality -->
+                            <div class="col-md-4">
+                                <label class="form-label">Nationality</label>
+                                <input class="form-control" placeholder="e.g. GBR"
+                                       maxlength="3" @bind="passenger.NationalityCode" />
+                            </div>
+                            <!-- Passport -->
+                            <div class="col-md-4">
+                                <label class="form-label">Passport number</label>
+                                <input class="form-control" placeholder="Optional for domestic"
+                                       @bind="passenger.PassportNumber" />
+                            </div>
+
+                            <!-- Extras section -->
+                            <div class="col-12">
+                                <div class="ba-extras-section">
+                                    <h6 class="ba-extras-title">Extras</h6>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Cabin baggage</label>
+                                            <select class="form-select"
+                                                    @bind="passenger.CabinBaggage"
+                                                    @bind:after="() => BookingSession.RecalculatePrice()">
+                                                <option value="@CabinBaggage.None">No cabin bag (free)</option>
+                                                <option value="@CabinBaggage.Small">Small bag £12</option>
+                                                <option value="@CabinBaggage.Large">Large bag £28</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Hold baggage</label>
+                                            <div class="form-check mt-2">
+                                                <input type="checkbox" class="form-check-input"
+                                                       id="bag_@idx"
+                                                       @bind="passenger.HasCheckedBaggage"
+                                                       @bind:after="() => BookingSession.RecalculatePrice()" />
+                                                <label class="form-check-label" for="bag_@idx">
+                                                    23kg checked bag (+£35)
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Contact details -->
+                <div class="ba-passenger-card mt-3">
+                    <h5>Contact details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control"
+                                   @bind="ContactEmail"
+                                   placeholder="Booking confirmation will be sent here" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile phone</label>
+                            <input type="tel" class="form-control" @bind="ContactPhone"
+                                   placeholder="+44 7700 900000" />
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(ValidationError))
+                {
+                    <div class="alert alert-danger mt-3">@ValidationError</div>
+                }
+
+                <div class="d-flex gap-3 mt-4">
+                    <a href="/select-seats" class="btn btn-ba-outline">← Back</a>
+                    <button class="btn btn-ba-primary" @onclick="Continue">
+                        Continue to payment →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Price summary -->
+            <div class="col-lg-4">
+                <div class="ba-price-summary sticky-top" style="top: 100px;">
+                    <h5>Price summary</h5>
+                    <div class="ba-price-summary__line">
+                        <span>@BookingSession.Session.SearchRequest.OriginCode → @BookingSession.Session.SearchRequest.DestinationCode</span>
+                        <span>£@BookingSession.Session.TotalPrice.ToString("N2")</span>
+                    </div>
+                    @if (BookingSession.Session.Passengers.Any(p => p.HasCheckedBaggage))
+                    {
+                        <div class="ba-price-summary__line">
+                            <span>Checked baggage</span>
+                            <span>£@(BookingSession.Session.Passengers.Count(p => p.HasCheckedBaggage) * 35)</span>
+                        </div>
+                    }
+                    <div class="ba-price-summary__line ba-price-summary__line--tax">
+                        <span>Taxes & charges (est.)</span>
+                        <span>£@BookingSession.Session.TaxAmount.ToString("N2")</span>
+                    </div>
+                    <div class="ba-price-summary__total">
+                        <span>Total</span>
+                        <span>£@((BookingSession.Session.TotalPrice + BookingSession.Session.TaxAmount).ToString("N2"))</span>
+                    </div>
+                    <p class="ba-price-summary__note">Price shown per booking, includes all taxes</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string ContactEmail = string.Empty;
+    private string ContactPhone = string.Empty;
+    private string? ValidationError;
+
+    protected override void OnInitialized()
+    {
+        if (!BookingSession.Session.Passengers.Any())
+            Nav.NavigateTo("/");
+    }
+
+    private void Continue()
+    {
+        ValidationError = null;
+
+        var invalid = BookingSession.Session.Passengers
+            .FirstOrDefault(p => string.IsNullOrWhiteSpace(p.FirstName) ||
+                                  string.IsNullOrWhiteSpace(p.LastName));
+
+        if (invalid != null)
+        { ValidationError = "Please fill in all required passenger details."; return; }
+
+        if (string.IsNullOrWhiteSpace(ContactEmail))
+        { ValidationError = "Please enter a contact email address."; return; }
+
+        BookingSession.Session.Passengers[0].IsLeadPassenger = true;
+        BookingSession.RecalculatePrice();
+        Nav.NavigateTo("/payment");
+    }
+}

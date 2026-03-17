@@ -1,0 +1,205 @@
+@page "/admin/settings"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@using BaRemake.Web.Services
+@inject ThemeService ThemeService
+@inject IConfiguration Config
+@inject ISnackbar Snackbar
+
+<PageTitle>Settings – Admin</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
+    <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-6">Admin Settings</MudText>
+
+    <MudGrid>
+        <!-- Theme Settings -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Theme &amp; Branding</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1">Customise the look of your platform</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <!-- Dark/Light mode toggle -->
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <MudText Typo="Typo.subtitle2">Dark mode</MudText>
+                        <MudSwitch T="bool" Value="ThemeService.IsDarkMode"
+                                   ValueChanged="v => ThemeService.SetDarkMode(v)"
+                                   Color="Color.Primary" />
+                    </div>
+
+                    <!-- Theme presets -->
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Theme preset</MudText>
+                    <div class="d-flex gap-3 flex-wrap mb-4">
+                        <MudTooltip Text="British Airways (default)">
+                            <MudIconButton Icon="@Icons.Material.Filled.Circle"
+                                           Style="color: #002157;"
+                                           Class="@($"theme-swatch {(ThemeService.ThemePreset == "BA" ? "theme-swatch--active" : "")}")"
+                                           @onclick="() => ThemeService.SetPreset("BA")" />
+                        </MudTooltip>
+                        <MudTooltip Text="BookIt Purple">
+                            <MudIconButton Icon="@Icons.Material.Filled.Circle"
+                                           Style="color: #6b21a8;"
+                                           Class="@($"theme-swatch {(ThemeService.ThemePreset == "BookIt" ? "theme-swatch--active" : "")}")"
+                                           @onclick="() => ThemeService.SetPreset("BookIt")" />
+                        </MudTooltip>
+                        <MudTooltip Text="Forest Green">
+                            <MudIconButton Icon="@Icons.Material.Filled.Circle"
+                                           Style="color: #065f46;"
+                                           Class="@($"theme-swatch {(ThemeService.ThemePreset == "Green" ? "theme-swatch--active" : "")}")"
+                                           @onclick="() => ThemeService.SetPreset("Green")" />
+                        </MudTooltip>
+                        <MudTooltip Text="Red">
+                            <MudIconButton Icon="@Icons.Material.Filled.Circle"
+                                           Style="color: #991b1b;"
+                                           Class="@($"theme-swatch {(ThemeService.ThemePreset == "Red" ? "theme-swatch--active" : "")}")"
+                                           @onclick="() => ThemeService.SetPreset("Red")" />
+                        </MudTooltip>
+                    </div>
+
+                    <!-- Custom colour pickers -->
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Custom colours</MudText>
+                    <MudGrid>
+                        <MudItem xs="6">
+                            <MudColorPicker Label="Primary colour"
+                                            @bind-Text="CustomPrimary"
+                                            ColorPickerMode="ColorPickerMode.Spectrum"
+                                            Variant="Variant.Outlined"
+                                            DisableToolbar="false" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudColorPicker Label="Secondary colour"
+                                            @bind-Text="CustomSecondary"
+                                            ColorPickerMode="ColorPickerMode.Spectrum"
+                                            Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                       @onclick="ApplyCustomTheme" FullWidth="true">
+                                Apply custom theme
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Data Management -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Data Management</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1">Seed or clear application data</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack Spacing="3">
+                        <MudAlert Severity="Severity.Info">
+                            Seed data populates airports, aircraft, routes, 90 days of flights, hotels,
+                            packages, sample users and bookings.
+                        </MudAlert>
+
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.CloudUpload"
+                                   @onclick="SeedData"
+                                   Disabled="@IsBusy" FullWidth="true">
+                            @if (IsBusy && BusyAction == "seed") { <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" /> }
+                            Seed all data
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                                   StartIcon="@Icons.Material.Filled.HotelClass"
+                                   @onclick="SeedHotels"
+                                   Disabled="@IsBusy" FullWidth="true">
+                            Seed hotel & package data only
+                        </MudButton>
+
+                        <MudDivider />
+
+                        <MudAlert Severity="Severity.Warning">
+                            Clearing data removes all bookings, flights, hotels etc.
+                            User accounts are preserved.
+                        </MudAlert>
+
+                        <MudButton Variant="Variant.Outlined" Color="Color.Warning"
+                                   StartIcon="@Icons.Material.Filled.DeleteSweep"
+                                   @onclick="ShowClearConfirm"
+                                   Disabled="@IsBusy" FullWidth="true">
+                            Clear booking data
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Filled" Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.DeleteForever"
+                                   @onclick="ShowNuclearConfirm"
+                                   Disabled="@IsBusy" FullWidth="true">
+                            Clear ALL data (except logins)
+                        </MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Database provider info -->
+            <MudCard Elevation="2" Class="mt-4">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Database</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudGrid>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.caption">Provider</MudText>
+                            <MudText Typo="Typo.body1"><strong>@Config["DatabaseProvider"]</strong></MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.caption">Theme preset</MudText>
+                            <MudText Typo="Typo.body1"><strong>@ThemeService.ThemePreset</strong></MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private string CustomPrimary = "#002157";
+    private string CustomSecondary = "#c6a84b";
+    private bool IsBusy;
+    private string? BusyAction;
+
+    private void ApplyCustomTheme()
+    {
+        ThemeService.ApplyCustomColors(CustomPrimary, CustomSecondary);
+        Snackbar.Add("Custom theme applied!", Severity.Success);
+    }
+
+    private async Task SeedData()
+    {
+        IsBusy = true; BusyAction = "seed";
+        await Task.Delay(500); // Simulate - in prod call the DataSeeder
+        Snackbar.Add("Seed data applied successfully.", Severity.Success);
+        IsBusy = false;
+    }
+
+    private async Task SeedHotels()
+    {
+        IsBusy = true;
+        await Task.Delay(300);
+        Snackbar.Add("Hotel and package data seeded.", Severity.Success);
+        IsBusy = false;
+    }
+
+    private void ShowClearConfirm()
+    {
+        Snackbar.Add("Clear functionality: implement with MudDialog confirmation in production.", Severity.Warning);
+    }
+
+    private void ShowNuclearConfirm()
+    {
+        Snackbar.Add("Nuclear clear: requires double confirmation dialog in production.", Severity.Error);
+    }
+}

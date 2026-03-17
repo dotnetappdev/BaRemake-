@@ -1,0 +1,45 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.swp
+*~
+
+## Published files
+publish/
+artifacts/
+
+## User secrets
+**/Properties/launchSettings.json
+**/appsettings.Development.json
+
+## EF Migrations (keep these in source control usually, but optional)
+# **/Migrations/
+
+## IDE
+.idea/
+.vscode/settings.json
+*.DS_Store
+Thumbs.db
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+## Test results
+TestResults/
+*.trx
+*.coverage
+
+## Logs
+*.log
+logs/
+
+## Secrets (NEVER commit)
+**/appsettings.Production.json
+*.pfx
+*.p12
+secrets.json

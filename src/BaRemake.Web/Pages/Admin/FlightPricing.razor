@@ -1,0 +1,139 @@
+@page "/admin/flights"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Manager")]
+@using BaRemake.Data.Repositories
+@using BaRemake.Shared.DTOs
+@inject IFlightRepository FlightRepo
+
+<PageTitle>Flight Pricing – Admin</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="ba-page-title mb-0">Flight Pricing Management</h2>
+        <a href="/admin" class="btn btn-ba-outline btn-sm">← Dashboard</a>
+    </div>
+
+    <!-- Date filter -->
+    <div class="ba-admin-filter mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-auto">
+                <label class="form-label">From date</label>
+                <input type="date" class="form-control"
+                       @bind="FilterFrom"
+                       @bind:after="LoadFlights" />
+            </div>
+            <div class="col-auto">
+                <label class="form-label">To date</label>
+                <input type="date" class="form-control"
+                       @bind="FilterTo"
+                       @bind:after="LoadFlights" />
+            </div>
+            <div class="col-auto">
+                <input type="text" class="form-control" placeholder="Search flight..."
+                       @bind="SearchTerm" @bind:event="oninput" />
+            </div>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="ba-loading"><div class="ba-loading__spinner"></div></div>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(SaveMessage))
+        {
+            <div class="alert alert-success alert-dismissible">
+                @SaveMessage
+                <button type="button" class="btn-close" @onclick="() => SaveMessage = null"></button>
+            </div>
+        }
+
+        <div class="table-responsive">
+            <table class="table ba-admin-table">
+                <thead>
+                    <tr>
+                        <th>Flight</th>
+                        <th>Route</th>
+                        <th>Departure</th>
+                        <th>Economy base (£)</th>
+                        <th>Eco multiplier</th>
+                        <th>Business base (£)</th>
+                        <th>Extra legroom fee (£)</th>
+                        <th>Baggage fee (£)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var flight in FilteredFlights)
+                    {
+                        <tr>
+                            <td><strong>@flight.FlightNumber</strong></td>
+                            <td>@flight.Route</td>
+                            <td>@flight.DepartureTime.ToString("ddd d MMM HH:mm")</td>
+                            <td>
+                                <input type="number" class="form-control form-control-sm ba-price-input"
+                                       @bind="flight.EconomyBasePrice" min="0" step="1" />
+                            </td>
+                            <td>
+                                <input type="number" class="form-control form-control-sm ba-price-input"
+                                       @bind="flight.EconomyDynamicMultiplier" min="0.5" max="5" step="0.1" />
+                            </td>
+                            <td>
+                                <input type="number" class="form-control form-control-sm ba-price-input"
+                                       @bind="flight.BusinessBasePrice" min="0" step="1" />
+                            </td>
+                            <td>
+                                <input type="number" class="form-control form-control-sm ba-price-input"
+                                       @bind="flight.ExtraLegroomFee" min="0" step="1" />
+                            </td>
+                            <td>
+                                <input type="number" class="form-control form-control-sm ba-price-input"
+                                       @bind="flight.BaggageFee" min="0" step="1" />
+                            </td>
+                            <td>
+                                <button class="btn btn-ba-primary btn-sm"
+                                        @onclick="() => SavePricing(flight)">
+                                    Save
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <p class="text-muted mt-2">Showing @FilteredFlights.Count of @Flights.Count flights</p>
+    }
+</div>
+
+@code {
+    private List<AdminFlightPricingDto> Flights = new();
+    private bool IsLoading = true;
+    private string? SaveMessage;
+    private string SearchTerm = string.Empty;
+    private DateTime FilterFrom = DateTime.Today;
+    private DateTime FilterTo = DateTime.Today.AddDays(30);
+
+    private List<AdminFlightPricingDto> FilteredFlights =>
+        Flights.Where(f =>
+            string.IsNullOrEmpty(SearchTerm) ||
+            f.FlightNumber.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+            f.Route.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    protected override async Task OnInitializedAsync() => await LoadFlights();
+
+    private async Task LoadFlights()
+    {
+        IsLoading = true;
+        Flights = await FlightRepo.GetFlightsForAdminAsync(FilterFrom, FilterTo);
+        IsLoading = false;
+    }
+
+    private async Task SavePricing(AdminFlightPricingDto dto)
+    {
+        await FlightRepo.UpdateFlightPricingAsync(dto);
+        SaveMessage = $"Pricing updated for {dto.FlightNumber}";
+    }
+}

@@ -1,0 +1,220 @@
+@using BaRemake.Shared.DTOs
+@using BaRemake.Shared.Enums
+
+<div class="ba-seatmap-wrapper">
+    @if (SeatMap == null)
+    {
+        <div class="ba-seatmap-loading">
+            <div class="spinner-border text-primary"></div>
+            <p>Loading seat map...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Legend -->
+        <div class="ba-seatmap-legend">
+            <div class="ba-legend-item"><div class="ba-seat ba-seat--available"></div><span>Available</span></div>
+            <div class="ba-legend-item"><div class="ba-seat ba-seat--selected"></div><span>Selected</span></div>
+            <div class="ba-legend-item"><div class="ba-seat ba-seat--occupied"></div><span>Occupied</span></div>
+            <div class="ba-legend-item"><div class="ba-seat ba-seat--extra-legroom"></div><span>Extra legroom (+£25)</span></div>
+            <div class="ba-legend-item"><div class="ba-seat ba-seat--business"></div><span>Business</span></div>
+        </div>
+
+        <!-- Aircraft nose -->
+        <div class="ba-aircraft-nose">✈ Front of aircraft</div>
+
+        <!-- Seat grid -->
+        <div class="ba-seatmap">
+            <!-- Column headers -->
+            <div class="ba-seatmap-header">
+                <div class="ba-row-num"></div>
+                @{
+                    var cols = GetColumns(SeatMap.SeatLayout);
+                }
+                @foreach (var col in cols)
+                {
+                    @if (col == "|")
+                    {
+                        <div class="ba-seat-aisle"></div>
+                    }
+                    else
+                    {
+                        <div class="ba-col-header">@col</div>
+                    }
+                }
+            </div>
+
+            @foreach (var row in SeatMap.Rows)
+            {
+                <div class="ba-seatmap-row @(row.IsExitRow ? "ba-seatmap-row--exit" : "")">
+                    <div class="ba-row-num">
+                        @row.RowNumber
+                        @if (row.IsExitRow)
+                        {
+                            <span class="ba-exit-icon" title="Exit row">🚪</span>
+                        }
+                    </div>
+
+                    @{
+                        var leftGroup = GetLeftSeats(row.Seats, SeatMap.SeatLayout);
+                        var rightGroup = GetRightSeats(row.Seats, SeatMap.SeatLayout);
+                        var middleGroup = GetMiddleSeats(row.Seats, SeatMap.SeatLayout);
+                    }
+
+                    <!-- Left group -->
+                    @foreach (var seat in leftGroup)
+                    {
+                        <div class="ba-seat @GetSeatCss(seat)"
+                             title="@seat.SeatNumber - @GetSeatTooltip(seat)"
+                             @onclick="() => ToggleSeat(seat)">
+                            <span class="ba-seat__label">@seat.Column</span>
+                        </div>
+                    }
+
+                    <!-- Aisle -->
+                    <div class="ba-seat-aisle">
+                        @if (row.IsExtraLegroom)
+                        {
+                            <span class="ba-legroom-label">Extra legroom</span>
+                        }
+                    </div>
+
+                    <!-- Middle group (wide-body) -->
+                    @if (middleGroup.Any())
+                    {
+                        @foreach (var seat in middleGroup)
+                        {
+                            <div class="ba-seat @GetSeatCss(seat)"
+                                 title="@seat.SeatNumber"
+                                 @onclick="() => ToggleSeat(seat)">
+                                <span class="ba-seat__label">@seat.Column</span>
+                            </div>
+                        }
+                        <div class="ba-seat-aisle"></div>
+                    }
+
+                    <!-- Right group -->
+                    @foreach (var seat in rightGroup)
+                    {
+                        <div class="ba-seat @GetSeatCss(seat)"
+                             title="@seat.SeatNumber"
+                             @onclick="() => ToggleSeat(seat)">
+                            <span class="ba-seat__label">@seat.Column</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Selected summary -->
+        @if (SelectedSeats.Any())
+        {
+            <div class="ba-seatmap-selection">
+                <h6>Selected seats:</h6>
+                <div class="ba-selected-seats-list">
+                    @foreach (var seat in SelectedSeats)
+                    {
+                        <span class="ba-selected-seat-badge">
+                            @seat.SeatNumber
+                            @if (seat.IsExtraLegroom) { <small>(+£25)</small> }
+                            <button class="ba-selected-seat-remove" @onclick="() => ToggleSeat(seat)">×</button>
+                        </span>
+                    }
+                </div>
+                @if (MaxSeats > 1)
+                {
+                    <small class="text-muted">Select up to @MaxSeats seats (@SelectedSeats.Count/@MaxSeats selected)</small>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SeatMapDto? SeatMap { get; set; }
+    [Parameter] public int MaxSeats { get; set; } = 1;
+    [Parameter] public EventCallback<List<SeatDto>> OnSeatsChanged { get; set; }
+
+    private List<SeatDto> SelectedSeats { get; set; } = new();
+
+    private void ToggleSeat(SeatDto seat)
+    {
+        if (seat.Status == SeatStatus.Occupied || seat.Status == SeatStatus.Blocked) return;
+
+        if (seat.IsSelected)
+        {
+            seat.IsSelected = false;
+            SelectedSeats.RemoveAll(s => s.Id == seat.Id);
+        }
+        else
+        {
+            if (SelectedSeats.Count >= MaxSeats)
+            {
+                // Deselect the first selected seat
+                var first = SelectedSeats.First();
+                first.IsSelected = false;
+                SelectedSeats.Remove(first);
+            }
+            seat.IsSelected = true;
+            SelectedSeats.Add(seat);
+        }
+
+        OnSeatsChanged.InvokeAsync(SelectedSeats);
+    }
+
+    private string GetSeatCss(SeatDto seat)
+    {
+        if (seat.Status == SeatStatus.Occupied) return "ba-seat--occupied";
+        if (seat.Status == SeatStatus.Blocked) return "ba-seat--blocked";
+        if (seat.IsSelected) return seat.Class switch
+        {
+            SeatClass.Business => "ba-seat--business ba-seat--selected",
+            SeatClass.First => "ba-seat--first ba-seat--selected",
+            _ when seat.IsExtraLegroom => "ba-seat--extra-legroom ba-seat--selected",
+            _ => "ba-seat--selected"
+        };
+        return seat.Class switch
+        {
+            SeatClass.Business => "ba-seat--business",
+            SeatClass.First => "ba-seat--first",
+            _ when seat.IsExtraLegroom => "ba-seat--extra-legroom",
+            _ => "ba-seat--available"
+        };
+    }
+
+    private string GetSeatTooltip(SeatDto seat)
+    {
+        var parts = new List<string>();
+        if (seat.IsWindowSeat) parts.Add("Window");
+        if (seat.IsAisleSeat) parts.Add("Aisle");
+        if (seat.IsMiddleSeat) parts.Add("Middle");
+        if (seat.IsExtraLegroom) parts.Add("Extra legroom");
+        if (seat.Class == SeatClass.Business) parts.Add("Business Class");
+        return string.Join(", ", parts);
+    }
+
+    // Returns column headers with aisle marker
+    private static List<string> GetColumns(string layout) => layout switch
+    {
+        "3-4-3" => new() { "A", "B", "C", "|", "D", "E", "F", "G", "|", "H", "J", "K" },
+        "3-3-3" => new() { "A", "B", "C", "|", "D", "E", "F", "|", "G", "H", "J" },
+        _ => new() { "A", "B", "C", "|", "D", "E", "F" }
+    };
+
+    private static List<SeatDto> GetLeftSeats(List<SeatDto> seats, string layout) =>
+        seats.Where(s => s.Column is "A" or "B" or "C").ToList();
+
+    private static List<SeatDto> GetRightSeats(List<SeatDto> seats, string layout) => layout switch
+    {
+        "3-4-3" => seats.Where(s => s.Column is "H" or "J" or "K").ToList(),
+        "3-3-3" => seats.Where(s => s.Column is "G" or "H" or "J").ToList(),
+        _ => seats.Where(s => s.Column is "D" or "E" or "F").ToList()
+    };
+
+    private static List<SeatDto> GetMiddleSeats(List<SeatDto> seats, string layout) => layout switch
+    {
+        "3-4-3" => seats.Where(s => s.Column is "D" or "E" or "F" or "G").ToList(),
+        "3-3-3" => seats.Where(s => s.Column is "D" or "E" or "F").ToList(),
+        _ => new()
+    };
+}

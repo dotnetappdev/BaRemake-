@@ -1,0 +1,138 @@
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@using BaRemake.Web.Services
+@using MudBlazor
+@inject ThemeService ThemeService
+@inject NavigationManager Nav
+
+<MudThemeProvider Theme="ThemeService.CurrentMudTheme" IsDarkMode="ThemeService.IsDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Medium" />
+<MudSnackbarProvider />
+
+<div class="ba-app @(ThemeService.IsDarkMode ? "dark-mode" : "")">
+    <header class="ba-header">
+        <div class="ba-header__top">
+            <div class="container">
+                <div class="ba-header__inner">
+                    <!-- Logo -->
+                    <a href="/" class="ba-logo">
+                        <div class="ba-logo__icon">✈</div>
+                        <div class="ba-logo__text">
+                            <span class="ba-logo__brand">BaRemake</span>
+                            <span class="ba-logo__tagline">The World's Favourite Airline</span>
+                        </div>
+                    </a>
+
+                    <!-- Navigation -->
+                    <nav class="ba-nav">
+                        <a href="/" class="ba-nav__link">Flights</a>
+                        <a href="/hotels" class="ba-nav__link">Hotels</a>
+                        <a href="/packages" class="ba-nav__link">Holidays</a>
+                        <a href="/my-bookings" class="ba-nav__link">Manage</a>
+                        <AuthorizeView Roles="Admin,Manager">
+                            <a href="/admin" class="ba-nav__link ba-nav__link--admin">Admin</a>
+                        </AuthorizeView>
+                    </nav>
+
+                    <!-- Dark mode toggle -->
+                    <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                                   Color="Color.Inherit"
+                                   OnClick="() => ThemeService.SetDarkMode(!ThemeService.IsDarkMode)"
+                                   Title="Toggle dark mode" />
+
+                    <!-- User area -->
+                    <div class="ba-header__user">
+                        <AuthorizeView>
+                            <Authorized>
+                                <div class="ba-user-menu">
+                                    <span class="ba-user-menu__name">
+                                        @context.User.FindFirst("FirstName")?.Value
+                                    </span>
+                                    <div class="ba-user-menu__dropdown">
+                                        <a href="/my-bookings">My Bookings</a>
+                                        <a href="/account/profile">My Profile</a>
+                                        <AuthorizeView Roles="Admin,Manager">
+                                            <a href="/admin">Admin Panel</a>
+                                        </AuthorizeView>
+                                        <hr />
+                                        <form method="post" action="/account/logout">
+                                            <AntiforgeryToken />
+                                            <button type="submit" class="ba-user-menu__logout">Sign Out</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </Authorized>
+                            <NotAuthorized>
+                                <a href="/account/login" class="btn btn-ba-outline btn-sm">Sign In</a>
+                                <a href="/account/register" class="btn btn-ba-primary btn-sm ms-2">Register</a>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="ba-main">
+        <article class="ba-content">
+            @Body
+        </article>
+    </main>
+
+    <footer class="ba-footer">
+        <div class="container">
+            <div class="ba-footer__grid">
+                <div>
+                    <h6>Book & Manage</h6>
+                    <ul>
+                        <li><a href="/">Book a flight</a></li>
+                        <li><a href="/hotels">Hotels</a></li>
+                        <li><a href="/packages">Holiday packages</a></li>
+                        <li><a href="/my-bookings">Manage booking</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h6>Travel extras</h6>
+                    <ul>
+                        <li><a href="#">Speedy boarding</a></li>
+                        <li><a href="#">Fast-track security</a></li>
+                        <li><a href="#">Lounge access</a></li>
+                        <li><a href="#">Car hire</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h6>Help</h6>
+                    <ul>
+                        <li><a href="#">Contact us</a></li>
+                        <li><a href="#">Baggage info</a></li>
+                        <li><a href="#">Seat selection</a></li>
+                        <li><a href="#">Travel agents</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h6>About BaRemake</h6>
+                    <ul>
+                        <li><a href="#">About us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press</a></li>
+                        <li><a href="/admin/settings">Branding settings</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="ba-footer__bottom">
+                <p>&copy; @DateTime.Now.Year BaRemake Airways Ltd. All rights reserved.</p>
+                <p class="ba-footer__tech">Built with .NET 10 · Blazor · MudBlazor · EF Core</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        ThemeService.OnThemeChanged += StateHasChanged;
+    }
+
+    public void Dispose() => ThemeService.OnThemeChanged -= StateHasChanged;
+}
