@@ -742,7 +742,7 @@ public class HotelSeeder
                 Description = "The pinnacle of the French Riviera since 1870, a legendary clifftop retreat on Cap d'Antibes where F. Scott Fitzgerald wrote Tender is the Night. No key cards — each guest has an actual key. The iconic salt-water pool hewn from the rocks, spectacular cliff-edge dining at Eden-Roc Restaurant, and absolute privacy.",
                 Chain = "Oetker Collection",
                 Category = HotelCategory.Resort, IsFeatured = true,
-                HasPool = true, HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true, HasBeachAccess = true, HasTennis = true,
+                HasPool = true, HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true, HasBeachAccess = true,
                 HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true, HasAirportShuttle = true,
                 Latitude = 43.5468, Longitude = 7.1282,
                 ImagesJson = JsonSerializer.Serialize(new[]
