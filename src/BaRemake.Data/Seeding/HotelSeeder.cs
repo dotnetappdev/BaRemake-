@@ -439,6 +439,385 @@ public class HotelSeeder
                     new() { RoomType = "Faena Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 130, MaxOccupancy = 4, PricePerNight = 2500, TotalRooms = 8, AvailableRooms = 2, HasBath = true, HasKitchenette = true, HasSeaView = true, HasBalcony = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Opulent suite with panoramic ocean views, separate living and dining rooms, private butler and in-suite jacuzzi." },
                 }
             },
+
+            // ── More London ───────────────────────────────────────────────────
+
+            new() {
+                Name = "Claridge's",
+                City = "London", Country = "United Kingdom", NearestAirportCode = "LHR",
+                Address = "Brook Street, Mayfair, London W1K 4HR",
+                StarRating = 5, ReviewScore = 9.4m, ReviewCount = 5640,
+                Description = "The definitive Art Deco grand hotel, open since 1812 and rebuilt in its iconic 1930s form. The beating heart of Mayfair — legendary haunt of royalty, heads of state and Hollywood A-listers. Davies and Brook restaurant by Daniel Humm (ex-Eleven Madison Park).",
+                Chain = "Maybourne Hotel Group",
+                Category = HotelCategory.Hotel, IsFeatured = true,
+                HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true,
+                Latitude = 51.5120, Longitude = -0.1491,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – Claridge's Hotel exterior, Brook Street
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Claridge%27s_Hotel_2007.jpg/1280px-Claridge%27s_Hotel_2007.jpg",
+                    // Wikimedia Commons – Mayfair, Brook Street area
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Brook_Street%2C_Mayfair_-_geograph.org.uk_-_1038291.jpg/1280px-Brook_Street%2C_Mayfair_-_geograph.org.uk_-_1038291.jpg",
+                    // Wikimedia Commons – New Bond Street / Mayfair streetscape
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Mayfair%2C_London.jpg/1280px-Mayfair%2C_London.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Superior Queen Room", BedType = BedType.Queen, BedCount = 1, SizeSquareMetres = 32, MaxOccupancy = 2, PricePerNight = 580, TotalRooms = 50, AvailableRooms = 20, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Elegant Art Deco room with bespoke furnishings, marble bathroom, and a quintessential Claridge's atmosphere." },
+                    new() { RoomType = "Deluxe King Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 42, MaxOccupancy = 2, PricePerNight = 780, TotalRooms = 30, AvailableRooms = 12, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Gracious king room with Art Deco interiors, Asprey amenities, deep soaking bath and 24-hour butler service." },
+                    new() { RoomType = "Mayfair Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 95, MaxOccupancy = 3, PricePerNight = 2200, TotalRooms = 10, AvailableRooms = 4, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Grand suite with a separate sitting room, dining table for six, fireplace and butler service in the Claridge's tradition." },
+                }
+            },
+
+            new() {
+                Name = "The Ritz London",
+                City = "London", Country = "United Kingdom", NearestAirportCode = "LHR",
+                Address = "150 Piccadilly, St James's, London W1J 9BR",
+                StarRating = 5, ReviewScore = 9.5m, ReviewCount = 4120,
+                Description = "London's most celebrated hotel since 1906, overlooking Green Park in the heart of St James's. Exquisite Louis XVI gilded interiors, the world-famous Ritz Restaurant, the iconic Palm Court afternoon tea, and a legendary casino.",
+                Chain = "Independent",
+                Category = HotelCategory.Hotel, IsFeatured = true,
+                HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true, HasParking = false, HasConcierge = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true,
+                Latitude = 51.5066, Longitude = -0.1428,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – The Ritz Hotel, Piccadilly London
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/The_Ritz_Hotel%2C_London%2C_England.jpg/1280px-The_Ritz_Hotel%2C_London%2C_England.jpg",
+                    // Wikimedia Commons – Piccadilly, London
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Piccadilly%2C_London_%28February_2006%29.JPG/1280px-Piccadilly%2C_London_%28February_2006%29.JPG",
+                    // Wikimedia Commons – Green Park (opposite The Ritz)
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Green_Park_in_London_-_geograph.org.uk_-_1192055.jpg/1280px-Green_Park_in_London_-_geograph.org.uk_-_1192055.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Classic Queen Room", BedType = BedType.Queen, BedCount = 1, SizeSquareMetres = 30, MaxOccupancy = 2, PricePerNight = 700, TotalRooms = 45, AvailableRooms = 16, HasBath = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Beautifully appointed room in the Louis XVI style with hand-woven fabrics, marble bathroom and fresh orchids daily." },
+                    new() { RoomType = "Deluxe Garden View Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 40, MaxOccupancy = 2, PricePerNight = 1100, TotalRooms = 20, AvailableRooms = 8, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Sumptuous room overlooking the private garden or Green Park, with gilded furnishings and a deep marble bath." },
+                    new() { RoomType = "Piccadilly Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 130, MaxOccupancy = 4, PricePerNight = 4500, TotalRooms = 6, AvailableRooms = 2, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Magnificent two-bedroom suite with panoramic Piccadilly views, a formal dining room, private butler and Ritz amenity kits." },
+                }
+            },
+
+            new() {
+                Name = "The Grosvenor Hotel",
+                City = "London", Country = "United Kingdom", NearestAirportCode = "LHR",
+                Address = "101 Buckingham Palace Road, London SW1W 0SJ",
+                StarRating = 4, ReviewScore = 8.7m, ReviewCount = 7890,
+                Description = "A handsome Victorian railway hotel adjacent to Victoria station, tastefully renovated in 2019. Grand staircase, Florentine restaurant, Hyde Park within walking distance, and exceptional transport links across London and beyond.",
+                Chain = "Clermont Hotel Group",
+                Category = HotelCategory.Hotel, IsFeatured = false,
+                HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true,
+                Latitude = 51.4944, Longitude = -0.1441,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – The Grosvenor Hotel, Victoria, London
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Grosvenor_Hotel%2C_London_-_geograph.org.uk_-_868282.jpg/1280px-Grosvenor_Hotel%2C_London_-_geograph.org.uk_-_868282.jpg",
+                    // Wikimedia Commons – Victoria Station exterior
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/London_Victoria_station_entrance.jpg/1280px-London_Victoria_station_entrance.jpg",
+                    // Wikimedia Commons – Buckingham Palace Road
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Buckingham_Palace%2C_London%2C_UK.jpg/1280px-Buckingham_Palace%2C_London%2C_UK.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Classic Room", BedType = BedType.Queen, BedCount = 1, SizeSquareMetres = 28, MaxOccupancy = 2, PricePerNight = 185, TotalRooms = 120, AvailableRooms = 60, IsNonSmoking = true, IncludesBreakfast = false, Description = "Comfortable Victorian-inspired room with modern amenities, power shower and great transport links to all London airports." },
+                    new() { RoomType = "Superior King Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 38, MaxOccupancy = 2, PricePerNight = 265, TotalRooms = 60, AvailableRooms = 25, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Spacious room with courtyard or street views, bathtub, and upgraded bathroom toiletries. Breakfast included." },
+                }
+            },
+
+            // ── Edinburgh ─────────────────────────────────────────────────────
+
+            new() {
+                Name = "The Balmoral Hotel",
+                City = "Edinburgh", Country = "United Kingdom", NearestAirportCode = "EDI",
+                Address = "1 Princes Street, Edinburgh EH2 2EQ",
+                StarRating = 5, ReviewScore = 9.2m, ReviewCount = 6320,
+                Description = "Edinburgh's grandest hotel, anchoring the east end of Princes Street since 1902. The landmark clock tower (always set 3 minutes fast to help travellers catch their trains), Michelin-starred Number One restaurant, palm court spa, and the suite where J.K. Rowling finished Harry Potter.",
+                Chain = "Rocco Forte Hotels",
+                Category = HotelCategory.Hotel, IsFeatured = true,
+                HasPool = true, HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true,
+                Latitude = 55.9527, Longitude = -3.1883,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – The Balmoral Hotel, Edinburgh clock tower
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/The_Balmoral_Hotel%2C_Edinburgh.jpg/1280px-The_Balmoral_Hotel%2C_Edinburgh.jpg",
+                    // Wikimedia Commons – Princes Street with Edinburgh Castle beyond
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Princes_Street_Edinburgh.jpg/1280px-Princes_Street_Edinburgh.jpg",
+                    // Wikimedia Commons – Edinburgh Castle from Princes Street Gardens
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Edinburgh_Castle_from_the_south.jpg/1280px-Edinburgh_Castle_from_the_south.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Classic King Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 30, MaxOccupancy = 2, PricePerNight = 320, TotalRooms = 55, AvailableRooms = 24, HasBath = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Elegant room in Edwardian grandeur with Scottish thistle motifs, marble bathroom and city or garden views." },
+                    new() { RoomType = "Castle View King Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 40, MaxOccupancy = 2, PricePerNight = 480, TotalRooms = 25, AvailableRooms = 10, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Premium room with sweeping views of Edinburgh Castle across Princes Street Gardens, the most iconic outlook in Scotland." },
+                    new() { RoomType = "Festival Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 100, MaxOccupancy = 3, PricePerNight = 1100, TotalRooms = 8, AvailableRooms = 3, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Opulent suite with panoramic castle and gardens views, separate drawing room, Floris bathroom products and butler service." },
+                }
+            },
+
+            // ── Manchester ────────────────────────────────────────────────────
+
+            new() {
+                Name = "Hotel Gotham",
+                City = "Manchester", Country = "United Kingdom", NearestAirportCode = "MAN",
+                Address = "100 King Street, Manchester M2 4WU",
+                StarRating = 5, ReviewScore = 9.0m, ReviewCount = 3890,
+                Description = "A dazzling Art Deco former bank on King Street, Manchester's most glamorous boutique hotel. 60 uniquely styled rooms and suites with floor-to-ceiling marble bathrooms, the rooftop Club Brass bar with panoramic skyline views, and the dramatic lower-ground Honey restaurant.",
+                Chain = "Independent",
+                Category = HotelCategory.Boutique, IsFeatured = true,
+                HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true,
+                Latitude = 53.4801, Longitude = -2.2389,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – King Street, Manchester (the hotel's location)
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/King_Street_Manchester.JPG/1280px-King_Street_Manchester.JPG",
+                    // Wikimedia Commons – Manchester city centre skyline
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Manchester_from_the_air_%28geograph_5486459%29.jpg/1280px-Manchester_from_the_air_%28geograph_5486459%29.jpg",
+                    // Wikimedia Commons – Manchester city central buildings
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Manchester_England.jpg/1280px-Manchester_England.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "King Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 30, MaxOccupancy = 2, PricePerNight = 220, TotalRooms = 30, AvailableRooms = 14, HasBath = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Art Deco-inspired room with floor-to-ceiling marble bathroom, Harvey Nichols toiletries and bespoke king bed." },
+                    new() { RoomType = "Gotham Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 65, MaxOccupancy = 3, PricePerNight = 550, TotalRooms = 8, AvailableRooms = 3, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Spectacular suite with city views, freestanding copper bath, double walk-in shower and in-room cocktail cabinet." },
+                }
+            },
+
+            // ── Scotland Resort ───────────────────────────────────────────────
+
+            new() {
+                Name = "Gleneagles",
+                City = "Auchterarder", Country = "United Kingdom", NearestAirportCode = "EDI",
+                Address = "Auchterarder, Perthshire PH3 1NF",
+                StarRating = 5, ReviewScore = 9.3m, ReviewCount = 8450,
+                Description = "Scotland's most legendary resort, set in 850 acres of Perthshire countryside. Three championship golf courses (including the Ryder Cup venue), an equestrian centre, falconry, Michelin-starred Andrew Fairlie restaurant, and a world-class spa. The definitive Scottish country-house experience.",
+                Chain = "Ennismore",
+                Category = HotelCategory.Resort, IsFeatured = true,
+                HasPool = true, HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true, IsPetFriendly = true, HasParking = true,
+                Latitude = 56.2739, Longitude = -3.7486,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – Gleneagles Hotel and golf courses, Perthshire
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Gleneagles_Hotel_and_Golf_Courses.jpg/1280px-Gleneagles_Hotel_and_Golf_Courses.jpg",
+                    // Wikimedia Commons – Gleneagles Hotel front facade
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Gleneagles_Hotel.jpg/1280px-Gleneagles_Hotel.jpg",
+                    // Wikimedia Commons – Perthshire hills landscape
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Perthshire_landscape.jpg/1280px-Perthshire_landscape.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Classic Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 35, MaxOccupancy = 2, PricePerNight = 450, TotalRooms = 80, AvailableRooms = 35, HasBath = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Elegant country-house room with rolling Perthshire views, Scottish wool throws and access to all resort facilities." },
+                    new() { RoomType = "Golf View Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 45, MaxOccupancy = 2, PricePerNight = 650, TotalRooms = 40, AvailableRooms = 18, HasBath = true, HasBalcony = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Superior room with private balcony overlooking the King's Course fairways with moorland and mountain backdrop." },
+                    new() { RoomType = "Gleneagles Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 120, MaxOccupancy = 4, PricePerNight = 1800, TotalRooms = 12, AvailableRooms = 5, HasBath = true, HasBalcony = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Palatial suite with separate sitting room, double bedroom, terrace with panoramic course and moorland views and butler service." },
+                }
+            },
+
+            // ── Berlin ────────────────────────────────────────────────────────
+
+            new() {
+                Name = "Hotel Adlon Kempinski",
+                City = "Berlin", Country = "Germany", NearestAirportCode = "BER",
+                Address = "Unter den Linden 77, 10117 Berlin",
+                StarRating = 5, ReviewScore = 9.1m, ReviewCount = 7820,
+                Description = "Berlin's most iconic grand hotel, directly beside the Brandenburg Gate since 1907 (rebuilt 1997). Legendary haunt of Michael Jackson, Charlie Chaplin and countless heads of state. Michelin-starred Lorenz Adlon Esszimmer, Adlon Spa and unrivalled views of the Gate.",
+                Chain = "Kempinski",
+                Category = HotelCategory.Hotel, IsFeatured = true,
+                HasPool = true, HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true,
+                Latitude = 52.5163, Longitude = 13.3777,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – Hotel Adlon Kempinski Berlin exterior
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Hotel_Adlon_Kempinski_Berlin_2012.jpg/1280px-Hotel_Adlon_Kempinski_Berlin_2012.jpg",
+                    // Wikimedia Commons – Brandenburg Gate illuminated at night
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Brandenburger_Tor_abends.jpg/1280px-Brandenburger_Tor_abends.jpg",
+                    // Wikimedia Commons – Unter den Linden boulevard, Berlin
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unter_den_Linden_Berlin.jpg/1280px-Unter_den_Linden_Berlin.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Deluxe Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 40, MaxOccupancy = 2, PricePerNight = 420, TotalRooms = 70, AvailableRooms = 30, HasBath = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Elegant room with warm wood panelling, marble bathroom, Kempinski Duck Down duvet and premium city views." },
+                    new() { RoomType = "Brandenburg Gate View Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 90, MaxOccupancy = 3, PricePerNight = 1400, TotalRooms = 10, AvailableRooms = 4, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Suite with unobstructed floor-to-ceiling views of the Brandenburg Gate, walk-in closet and Kempinski butler service." },
+                }
+            },
+
+            // ── Vienna ────────────────────────────────────────────────────────
+
+            new() {
+                Name = "Hotel Sacher Wien",
+                City = "Vienna", Country = "Austria", NearestAirportCode = "VIE",
+                Address = "Philharmoniker Strasse 4, 1010 Vienna",
+                StarRating = 5, ReviewScore = 9.2m, ReviewCount = 9640,
+                Description = "Vienna's most legendary hotel, open since 1876 and birthplace of the world-famous Sachertorte. Directly opposite the Vienna State Opera. Exquisite red-velvet interiors adorned with original paintings, the atmospheric Red Bar, and the original Café Sacher serving 1,000+ Sachertorte daily.",
+                Chain = "Sacher Hotels",
+                Category = HotelCategory.Hotel, IsFeatured = true,
+                HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true,
+                Latitude = 48.2030, Longitude = 16.3695,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – Hotel Sacher Wien, Philharmoniker Strasse
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Hotel_Sacher_Wien_2008.jpg/1280px-Hotel_Sacher_Wien_2008.jpg",
+                    // Wikimedia Commons – Vienna State Opera (directly opposite)
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Wiener_Staatsoper_bei_Nacht.jpg/1280px-Wiener_Staatsoper_bei_Nacht.jpg",
+                    // Wikimedia Commons – Vienna historic centre
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Vienna_-_Panorama.jpg/1280px-Vienna_-_Panorama.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Classic Room", BedType = BedType.Queen, BedCount = 1, SizeSquareMetres = 28, MaxOccupancy = 2, PricePerNight = 380, TotalRooms = 60, AvailableRooms = 28, HasBath = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Warmly furnished room with red velvet accents, original oil paintings and the distinctive Sacher ambiance." },
+                    new() { RoomType = "Superior Opera View Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 38, MaxOccupancy = 2, PricePerNight = 620, TotalRooms = 20, AvailableRooms = 9, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Premium room overlooking the illuminated Vienna State Opera House, with hand-carved furniture and marble bathroom." },
+                    new() { RoomType = "Sacher Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 85, MaxOccupancy = 3, PricePerNight = 1650, TotalRooms = 8, AvailableRooms = 3, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Magnificent suite with Biedermeier antiques, grand drawing room, butler service and sweeping Opera House views." },
+                }
+            },
+
+            // ── Venice ────────────────────────────────────────────────────────
+
+            new() {
+                Name = "Belmond Hotel Cipriani",
+                City = "Venice", Country = "Italy", NearestAirportCode = "VCE",
+                Address = "Giudecca 10, 30133 Venice",
+                StarRating = 5, ReviewScore = 9.6m, ReviewCount = 4250,
+                Description = "Venice's most celebrated hotel, hidden on the island of Giudecca since 1958, a three-minute private launch from Piazza San Marco. 95 rooms and suites set in a former monastic garden, the only heated pool in Venice, Michelin-starred Oro restaurant, and a private pasta-making school.",
+                Chain = "Belmond",
+                Category = HotelCategory.Hotel, IsFeatured = true,
+                HasPool = true, HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true, HasAirportShuttle = true,
+                Latitude = 45.4255, Longitude = 12.3354,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – Venice Grand Canal with gondolas
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Gondola_canal_grande.jpg/1280px-Gondola_canal_grande.jpg",
+                    // Wikimedia Commons – Giudecca island, Venice
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Giudecca_Venezia.jpg/1280px-Giudecca_Venezia.jpg",
+                    // Wikimedia Commons – Venice at sunset from the lagoon
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Venice_-_Venezia_-_panoramio_%2841%29.jpg/1280px-Venice_-_Venezia_-_panoramio_%2841%29.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Classic Garden Room", BedType = BedType.Queen, BedCount = 1, SizeSquareMetres = 32, MaxOccupancy = 2, PricePerNight = 750, TotalRooms = 30, AvailableRooms = 12, HasBath = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Serene room overlooking the monastery gardens with Venetian stucco walls, Fortuny fabrics and garden pool access." },
+                    new() { RoomType = "Lagoon View Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 42, MaxOccupancy = 2, PricePerNight = 1100, TotalRooms = 20, AvailableRooms = 8, HasBath = true, HasSeaView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Spacious room with sweeping views across the Venetian lagoon to San Marco and the Doge's Palace skyline." },
+                    new() { RoomType = "Palladio Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 110, MaxOccupancy = 3, PricePerNight = 3200, TotalRooms = 6, AvailableRooms = 2, HasBath = true, HasBalcony = true, HasSeaView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Grand lagoon-facing suite in the historic Palladio wing with private terrace, butler service and panoramic lagoon views." },
+                }
+            },
+
+            // ── Lake Como ─────────────────────────────────────────────────────
+
+            new() {
+                Name = "Grand Hotel Tremezzo",
+                City = "Tremezzo", Country = "Italy", NearestAirportCode = "MXP",
+                Address = "Via Regina 8, 22019 Tremezzo CO, Italy",
+                StarRating = 5, ReviewScore = 9.4m, ReviewCount = 3180,
+                Description = "A magnificent Belle Époque palace on the western shore of Lake Como since 1910, with mesmerising views of Villa Carlotta and the Alpine peaks beyond. Three pools (including a floating lake pool), a celebrated wine cellar, private beach and boat dock, and the La Terrazza restaurant.",
+                Chain = "Independent",
+                Category = HotelCategory.Resort, IsFeatured = true,
+                HasPool = true, HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true, HasBeachAccess = true, HasParking = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true,
+                Latitude = 45.9873, Longitude = 9.2262,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – Lake Como, Tremezzo, looking to Villa Carlotta
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Lago_di_Como_Tremezzo.JPG/1280px-Lago_di_Como_Tremezzo.JPG",
+                    // Wikimedia Commons – Lake Como panoramic view
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/LakeComo.jpg/1280px-LakeComo.jpg",
+                    // Wikimedia Commons – Lake Como Bellagio area with mountains
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Bellagio_Lake_Como.jpg/1280px-Bellagio_Lake_Como.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Classic Lake View Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 35, MaxOccupancy = 2, PricePerNight = 520, TotalRooms = 40, AvailableRooms = 18, HasBath = true, HasBalcony = true, HasSeaView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Elegant room with private balcony and breathtaking lake views framed by Alpine peaks and Mediterranean gardens." },
+                    new() { RoomType = "Grand Suite Lake View", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 90, MaxOccupancy = 3, PricePerNight = 1600, TotalRooms = 8, AvailableRooms = 3, HasBath = true, HasBalcony = true, HasSeaView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Palatial belle époque suite with panoramic Como views, separate sitting room, antique furnishings and a floating pool pass." },
+                }
+            },
+
+            // ── French Riviera ────────────────────────────────────────────────
+
+            new() {
+                Name = "Hôtel du Cap-Eden-Roc",
+                City = "Cap d'Antibes", Country = "France", NearestAirportCode = "NCE",
+                Address = "Boulevard J.F. Kennedy, 06601 Antibes",
+                StarRating = 5, ReviewScore = 9.5m, ReviewCount = 2890,
+                Description = "The pinnacle of the French Riviera since 1870, a legendary clifftop retreat on Cap d'Antibes where F. Scott Fitzgerald wrote Tender is the Night. No key cards — each guest has an actual key. The iconic salt-water pool hewn from the rocks, spectacular cliff-edge dining at Eden-Roc Restaurant, and absolute privacy.",
+                Chain = "Oetker Collection",
+                Category = HotelCategory.Resort, IsFeatured = true,
+                HasPool = true, HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true, HasBeachAccess = true, HasTennis = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true, HasAirportShuttle = true,
+                Latitude = 43.5468, Longitude = 7.1282,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – Cap d'Antibes peninsula, Côte d'Azur
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Cap_d%27Antibes.jpg/1280px-Cap_d%27Antibes.jpg",
+                    // Wikimedia Commons – French Riviera / Nice coast from above
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Nice_airport_and_Promenade_des_Anglais_aerial_view.jpg/1280px-Nice_airport_and_Promenade_des_Anglais_aerial_view.jpg",
+                    // Wikimedia Commons – Antibes old town and bay
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Antibes_-_panoramio_%286%29.jpg/1280px-Antibes_-_panoramio_%286%29.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Classic Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 40, MaxOccupancy = 2, PricePerNight = 1200, TotalRooms = 50, AvailableRooms = 18, HasBath = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Elegant Provençal room in the Belle Époque main building with sea or garden views and access to all cliff-top facilities." },
+                    new() { RoomType = "Eden-Roc Cabana Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 75, MaxOccupancy = 3, PricePerNight = 3500, TotalRooms = 12, AvailableRooms = 4, HasBath = true, HasBalcony = true, HasSeaView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Iconic poolside suite with private terrace, direct access to the rock-hewn seawater pool and uninterrupted Mediterranean views." },
+                }
+            },
+
+            // ── Brussels ──────────────────────────────────────────────────────
+
+            new() {
+                Name = "Hotel Amigo",
+                City = "Brussels", Country = "Belgium", NearestAirportCode = "BRU",
+                Address = "Rue de l'Amigo 1-3, 1000 Brussels",
+                StarRating = 5, ReviewScore = 9.0m, ReviewCount = 4580,
+                Description = "Brussels's most distinguished luxury hotel, steps from the Grand Place — a UNESCO World Heritage Site and one of the world's most beautiful squares. Spanish Renaissance-inspired architecture, the celebrated Ristorante Bocconi, and a striking Tintin-themed bar.",
+                Chain = "Rocco Forte Hotels",
+                Category = HotelCategory.Hotel, IsFeatured = false,
+                HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true,
+                Latitude = 50.8458, Longitude = 4.3497,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – Grand Place, Brussels (directly adjacent)
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Grand_place_brussels.jpg/1280px-Grand_place_brussels.jpg",
+                    // Wikimedia Commons – Brussels Town Hall, Grand Place
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Brussels-Grand_Place_04.jpg/1280px-Brussels-Grand_Place_04.jpg",
+                    // Wikimedia Commons – Brussels city panorama
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Brussels_panorama.jpg/1280px-Brussels_panorama.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Superior Room", BedType = BedType.Queen, BedCount = 1, SizeSquareMetres = 32, MaxOccupancy = 2, PricePerNight = 290, TotalRooms = 55, AvailableRooms = 24, HasBath = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Refined room with rich Flemish tapestries, black-granite bathroom and a location moments from the Grand Place." },
+                    new() { RoomType = "Grand Place View Suite", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 70, MaxOccupancy = 3, PricePerNight = 750, TotalRooms = 6, AvailableRooms = 2, HasBath = true, HasCityView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Rare suite with a private balcony overlooking the Grand Place, Brussels's gilded medieval masterpiece." },
+                }
+            },
+
+            // ── Geneva ────────────────────────────────────────────────────────
+
+            new() {
+                Name = "Beau-Rivage Geneva",
+                City = "Geneva", Country = "Switzerland", NearestAirportCode = "GVA",
+                Address = "Quai du Mont-Blanc 13, 1201 Geneva",
+                StarRating = 5, ReviewScore = 9.3m, ReviewCount = 5120,
+                Description = "Geneva's most storied grand hotel, open since 1865 on the shores of Lake Geneva. Legendary guests include Empress Sissi, who received the first guests, and Richard Wagner. The restaurant Le Chat-Botté holds two Michelin stars; the terrace affords breathtaking views of the Jet d'Eau and Mont Blanc.",
+                Chain = "Independent (Mayer family since 1865)",
+                Category = HotelCategory.Hotel, IsFeatured = false,
+                HasSpa = true, HasGym = true, HasRestaurant = true, HasBar = true,
+                HasFreeWifi = true, HasAirConditioning = true, HasRoomService = true, HasConcierge = true, HasAirportShuttle = true,
+                Latitude = 46.2068, Longitude = 6.1506,
+                ImagesJson = JsonSerializer.Serialize(new[]
+                {
+                    // Wikimedia Commons – Beau-Rivage Geneva lakeside facade
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Beau-Rivage_Geneva.jpg/1280px-Beau-Rivage_Geneva.jpg",
+                    // Wikimedia Commons – Lake Geneva with Jet d'Eau and Alps
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Lac_L%C3%A9man_et_le_jet_d%27eau%2C_Genf%2C_Suiza.jpg/1280px-Lac_L%C3%A9man_et_le_jet_d%27eau%2C_Genf%2C_Suiza.jpg",
+                    // Wikimedia Commons – Geneva lake panorama with Mont Blanc
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Geneva_rade.jpg/1280px-Geneva_rade.jpg"
+                }),
+                Rooms = new List<HotelRoom>
+                {
+                    new() { RoomType = "Classic Room", BedType = BedType.Queen, BedCount = 1, SizeSquareMetres = 30, MaxOccupancy = 2, PricePerNight = 480, TotalRooms = 40, AvailableRooms = 16, HasBath = true, IsNonSmoking = true, IncludesBreakfast = false, Description = "Tasteful room with hand-embroidered Swiss linens, marble bathroom and a choice of lake or city views." },
+                    new() { RoomType = "Lake View Deluxe Room", BedType = BedType.King, BedCount = 1, SizeSquareMetres = 42, MaxOccupancy = 2, PricePerNight = 780, TotalRooms = 20, AvailableRooms = 9, HasBath = true, HasSeaView = true, IsNonSmoking = true, IncludesBreakfast = true, Description = "Stunning room with full-width lake views, the Jet d'Eau and Alpine peaks as the backdrop. Includes breakfast." },
+                }
+            },
         };
 
         _db.Hotels.AddRange(hotels);
@@ -510,6 +889,78 @@ public class HotelSeeder
                 OriginAirportId = airports["LHR"], DestinationAirportId = airports["FCO"],
                 HotelId = romeHotel.Id, Nights = 4, BasePrice = 1299, OriginalPrice = 1700,
                 IncludesBreakfast = false, IncludesTransfers = true, Tags = "City break,Luxury", IsFeatured = false, IsActive = true,
+                ValidFrom = DateTime.Today, ValidTo = DateTime.Today.AddMonths(6)
+            });
+
+        if (airports.ContainsKey("LHR") && airports.ContainsKey("EDI") && GetHotel("Balmoral") is Hotel balmoral)
+            packages.Add(new Package {
+                Name = "Edinburgh City Break", Description = "4 nights at The Balmoral Hotel, Edinburgh's finest address on Princes Street, with return flights from London Heathrow.",
+                OriginAirportId = airports["LHR"], DestinationAirportId = airports["EDI"],
+                HotelId = balmoral.Id, Nights = 4, BasePrice = 699, OriginalPrice = 950,
+                IncludesBreakfast = true, Tags = "City break,Scotland", IsFeatured = true, IsActive = true,
+                ValidFrom = DateTime.Today, ValidTo = DateTime.Today.AddMonths(6)
+            });
+
+        if (airports.ContainsKey("LHR") && airports.ContainsKey("VIE") && GetHotel("Sacher") is Hotel sacher)
+            packages.Add(new Package {
+                Name = "Vienna Operatic Escape", Description = "5 nights at the legendary Hotel Sacher Wien opposite the Vienna State Opera, with return flights from London Heathrow.",
+                OriginAirportId = airports["LHR"], DestinationAirportId = airports["VIE"],
+                HotelId = sacher.Id, Nights = 5, BasePrice = 1299, OriginalPrice = 1700,
+                IncludesBreakfast = true, Tags = "City break,Luxury", IsFeatured = true, IsActive = true,
+                ValidFrom = DateTime.Today, ValidTo = DateTime.Today.AddMonths(6)
+            });
+
+        if (airports.ContainsKey("LHR") && airports.ContainsKey("VCE") && GetHotel("Cipriani") is Hotel cipriani)
+            packages.Add(new Package {
+                Name = "Venice Luxury Retreat", Description = "4 nights at Belmond Hotel Cipriani on the island of Giudecca — the most exclusive address in Venice — with return flights from London.",
+                OriginAirportId = airports["LHR"], DestinationAirportId = airports["VCE"],
+                HotelId = cipriani.Id, Nights = 4, BasePrice = 2499, OriginalPrice = 3200,
+                IncludesBreakfast = true, IncludesTransfers = true, Tags = "Luxury,City break", IsFeatured = true, IsActive = true,
+                ValidFrom = DateTime.Today, ValidTo = DateTime.Today.AddMonths(6)
+            });
+
+        if (airports.ContainsKey("LHR") && airports.ContainsKey("MXP") && GetHotel("Tremezzo") is Hotel tremezzo)
+            packages.Add(new Package {
+                Name = "Lake Como Belle Époque", Description = "6 nights at the Grand Hotel Tremezzo on the shores of Lake Como, with return flights from London Heathrow.",
+                OriginAirportId = airports["LHR"], DestinationAirportId = airports["MXP"],
+                HotelId = tremezzo.Id, Nights = 6, BasePrice = 1899, OriginalPrice = 2500,
+                IncludesBreakfast = true, Tags = "Luxury,Beach", IsFeatured = false, IsActive = true,
+                ValidFrom = DateTime.Today, ValidTo = DateTime.Today.AddMonths(6)
+            });
+
+        if (airports.ContainsKey("LHR") && airports.ContainsKey("NCE") && GetHotel("Cap-Eden-Roc") is Hotel capEden)
+            packages.Add(new Package {
+                Name = "French Riviera Retreat", Description = "5 nights at the legendary Hôtel du Cap-Eden-Roc on Cap d'Antibes, with return flights from London to Nice.",
+                OriginAirportId = airports["LHR"], DestinationAirportId = airports["NCE"],
+                HotelId = capEden.Id, Nights = 5, BasePrice = 4999, OriginalPrice = 6500,
+                IncludesBreakfast = true, IncludesTransfers = true, Tags = "Luxury,Beach", IsFeatured = true, IsActive = true,
+                ValidFrom = DateTime.Today, ValidTo = DateTime.Today.AddMonths(6)
+            });
+
+        if (airports.ContainsKey("LHR") && airports.ContainsKey("BER") && GetHotel("Adlon") is Hotel adlon)
+            packages.Add(new Package {
+                Name = "Berlin Brandenburg Break", Description = "4 nights at Hotel Adlon Kempinski next to the Brandenburg Gate, with return flights from London Heathrow.",
+                OriginAirportId = airports["LHR"], DestinationAirportId = airports["BER"],
+                HotelId = adlon.Id, Nights = 4, BasePrice = 899, OriginalPrice = 1200,
+                IncludesBreakfast = true, Tags = "City break", IsFeatured = false, IsActive = true,
+                ValidFrom = DateTime.Today, ValidTo = DateTime.Today.AddMonths(6)
+            });
+
+        if (airports.ContainsKey("LHR") && airports.ContainsKey("GVA") && GetHotel("Beau-Rivage") is Hotel beauRivage)
+            packages.Add(new Package {
+                Name = "Geneva Lakeside Luxury", Description = "3 nights at the Beau-Rivage Geneva on Lake Geneva with views of the Jet d'Eau and Mont Blanc, return flights included.",
+                OriginAirportId = airports["LHR"], DestinationAirportId = airports["GVA"],
+                HotelId = beauRivage.Id, Nights = 3, BasePrice = 1099, OriginalPrice = 1450,
+                IncludesBreakfast = true, Tags = "City break,Luxury", IsFeatured = false, IsActive = true,
+                ValidFrom = DateTime.Today, ValidTo = DateTime.Today.AddMonths(6)
+            });
+
+        if (airports.ContainsKey("LHR") && airports.ContainsKey("EDI") && GetHotel("Gleneagles") is Hotel gleneagles)
+            packages.Add(new Package {
+                Name = "Scottish Highland Resort", Description = "4 nights at Gleneagles in Perthshire — three championship golf courses, a world-class spa and Michelin dining — with return flights to Edinburgh.",
+                OriginAirportId = airports["LHR"], DestinationAirportId = airports["EDI"],
+                HotelId = gleneagles.Id, Nights = 4, BasePrice = 1499, OriginalPrice = 2000,
+                IncludesBreakfast = true, IncludesTransfers = true, Tags = "Luxury,Golf,Scotland", IsFeatured = true, IsActive = true,
                 ValidFrom = DateTime.Today, ValidTo = DateTime.Today.AddMonths(6)
             });
 

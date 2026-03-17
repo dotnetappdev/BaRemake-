@@ -334,6 +334,26 @@ public class DataSeeder
             ("GRU", "Guarulhos Airport", "São Paulo", "Brazil", "BR", "America/Sao_Paulo", -23.4356, -46.4731),
             ("GIG", "Galeão International Airport", "Rio de Janeiro", "Brazil", "BR", "America/Sao_Paulo", -22.8099, -43.2505),
             ("EZE", "Ezeiza International Airport", "Buenos Aires", "Argentina", "AR", "America/Argentina/Buenos_Aires", -34.8222, -58.5358),
+            // UK domestic
+            ("NCL", "Newcastle International Airport", "Newcastle", "United Kingdom", "GB", "Europe/London", 55.0375, -1.6917),
+            ("LBA", "Leeds Bradford Airport", "Leeds", "United Kingdom", "GB", "Europe/London", 53.8659, -1.6606),
+            ("LCY", "London City Airport", "London", "United Kingdom", "GB", "Europe/London", 51.5053, 0.0553),
+            ("ABZ", "Aberdeen International Airport", "Aberdeen", "United Kingdom", "GB", "Europe/London", 57.2019, -2.1978),
+            ("BFS", "Belfast International Airport", "Belfast", "United Kingdom", "GB", "Europe/London", 54.6575, -6.2158),
+            ("SOU", "Southampton Airport", "Southampton", "United Kingdom", "GB", "Europe/London", 50.9503, -1.3567),
+            // More Europe
+            ("BER", "Berlin Brandenburg Airport", "Berlin", "Germany", "DE", "Europe/Berlin", 52.3667, 13.5033),
+            ("GVA", "Geneva Airport", "Geneva", "Switzerland", "CH", "Europe/Zurich", 46.2381, 6.1089),
+            ("BRU", "Brussels Airport", "Brussels", "Belgium", "BE", "Europe/Brussels", 50.9010, 4.4844),
+            ("LYS", "Lyon-Saint Exupéry Airport", "Lyon", "France", "FR", "Europe/Paris", 45.7256, 5.0811),
+            ("HEL", "Helsinki-Vantaa Airport", "Helsinki", "Finland", "FI", "Europe/Helsinki", 60.3172, 24.9633),
+            ("HAM", "Hamburg Airport", "Hamburg", "Germany", "DE", "Europe/Berlin", 53.6304, 9.9882),
+            ("DUS", "Düsseldorf Airport", "Düsseldorf", "Germany", "DE", "Europe/Berlin", 51.2895, 6.7668),
+            ("NAP", "Naples International Airport", "Naples", "Italy", "IT", "Europe/Rome", 40.8860, 14.2908),
+            ("OPO", "Porto Airport", "Porto", "Portugal", "PT", "Europe/Lisbon", 41.2481, -8.6814),
+            ("SKG", "Thessaloniki Airport", "Thessaloniki", "Greece", "GR", "Europe/Athens", 40.5197, 22.9709),
+            ("CFU", "Corfu Airport", "Corfu", "Greece", "GR", "Europe/Athens", 39.6019, 19.9117),
+            ("KRK", "Kraków Airport", "Kraków", "Poland", "PL", "Europe/Warsaw", 50.0777, 19.7848),
             // Australia/Pacific
             ("SYD", "Sydney Kingsford Smith Airport", "Sydney", "Australia", "AU", "Australia/Sydney", -33.9399, 151.1753),
             ("MEL", "Melbourne Airport", "Melbourne", "Australia", "AU", "Australia/Melbourne", -37.6733, 144.8430),
@@ -518,6 +538,57 @@ public class DataSeeder
             ("AMS","JFK",455), ("JFK","AMS",445),
             ("MAD","JFK",475), ("JFK","MAD",460),
             ("FCO","JFK",495), ("JFK","FCO",480),
+
+            // LHR → new European cities
+            ("LHR","BER",120), ("BER","LHR",115),
+            ("LHR","GVA",100), ("GVA","LHR",95),
+            ("LHR","BRU",80),  ("BRU","LHR",75),
+            ("LHR","LYS",115), ("LYS","LHR",110),
+            ("LHR","HEL",165), ("HEL","LHR",175),
+            ("LHR","HAM",110), ("HAM","LHR",105),
+            ("LHR","DUS",105), ("DUS","LHR",100),
+            ("LHR","OPO",145), ("OPO","LHR",140),
+            ("LHR","NAP",165), ("NAP","LHR",160),
+            ("LHR","VCE",135), ("VCE","LHR",130),
+
+            // UK domestic (LHR hub)
+            ("LHR","EDI",80),  ("EDI","LHR",75),
+            ("LHR","MAN",65),  ("MAN","LHR",60),
+            ("LHR","GLA",90),  ("GLA","LHR",85),
+            ("LHR","BHX",45),  ("BHX","LHR",45),
+            ("LHR","NCL",75),  ("NCL","LHR",70),
+            ("LHR","BRS",45),  ("BRS","LHR",45),
+            ("LHR","ABZ",100), ("ABZ","LHR",95),
+            ("LHR","BFS",75),  ("BFS","LHR",70),
+
+            // MAN expanded European
+            ("MAN","BER",130), ("BER","MAN",125),
+            ("MAN","GVA",110), ("GVA","MAN",105),
+            ("MAN","VIE",165), ("VIE","MAN",160),
+            ("MAN","ZRH",115), ("ZRH","MAN",110),
+            ("MAN","ATH",220), ("ATH","MAN",225),
+            ("MAN","HER",220), ("HER","MAN",225),
+            ("MAN","RHO",215), ("RHO","MAN",220),
+            ("MAN","LIS",165), ("LIS","MAN",160),
+            ("MAN","NCE",130), ("NCE","MAN",125),
+
+            // LGW expanded
+            ("LGW","BER",130), ("BER","LGW",125),
+            ("LGW","GVA",105), ("GVA","LGW",100),
+            ("LGW","BRU",80),  ("BRU","LGW",75),
+            ("LGW","NAP",175), ("NAP","LGW",170),
+            ("LGW","OPO",150), ("OPO","LGW",145),
+            ("LGW","SKG",225), ("SKG","LGW",230),
+            ("LGW","CFU",210), ("CFU","LGW",215),
+            ("LGW","KRK",175), ("KRK","LGW",170),
+
+            // STN expanded
+            ("STN","BER",130), ("BER","STN",125),
+            ("STN","GVA",100), ("GVA","STN",95),
+            ("STN","PRG",130), ("PRG","STN",125),
+            ("STN","KRK",175), ("KRK","STN",170),
+            ("STN","BUD",175), ("BUD","STN",170),
+            ("STN","WAW",175), ("WAW","STN",170),
         };
 
         int idx = 100;
@@ -1040,5 +1111,78 @@ public class DataSeeder
         // Rome FCO → New York (codeshare operated by BA): BA2015, BA2017
         ["FCO-JFK"] = ["BA2015", "BA2017"],
         ["JFK-FCO"] = ["BA2016", "BA2018"],
+
+        // ── New European city routes ──────────────────────────────────────────
+        // LHR → Berlin Brandenburg: BA980, BA982, BA984, BA986
+        ["LHR-BER"] = ["BA980", "BA982", "BA984", "BA986"],
+        ["BER-LHR"] = ["BA981", "BA983", "BA985", "BA987"],
+        // LHR → Geneva: BA730, BA732, BA734, BA736
+        ["LHR-GVA"] = ["BA730", "BA732", "BA734", "BA736"],
+        ["GVA-LHR"] = ["BA731", "BA733", "BA735", "BA737"],
+        // LHR → Brussels: BA392, BA394, BA396, BA398, BA400
+        ["LHR-BRU"] = ["BA392", "BA394", "BA396", "BA398", "BA400"],
+        ["BRU-LHR"] = ["BA393", "BA395", "BA397", "BA399", "BA401"],
+        // LHR → Lyon: BA366, BA368, BA370
+        ["LHR-LYS"] = ["BA366", "BA368", "BA370"],
+        ["LYS-LHR"] = ["BA367", "BA369", "BA371"],
+        // LHR → Helsinki: BA454, BA456
+        ["LHR-HEL"] = ["BA454", "BA456"],
+        ["HEL-LHR"] = ["BA455", "BA457"],
+        // LHR → Hamburg: BA944, BA946, BA948
+        ["LHR-HAM"] = ["BA944", "BA946", "BA948"],
+        ["HAM-LHR"] = ["BA945", "BA947", "BA949"],
+        // LHR → Düsseldorf: BA928, BA930, BA932, BA934
+        ["LHR-DUS"] = ["BA928", "BA930", "BA932", "BA934"],
+        ["DUS-LHR"] = ["BA929", "BA931", "BA933", "BA935"],
+        // LHR → Porto: BA494, BA496
+        ["LHR-OPO"] = ["BA494", "BA496"],
+        ["OPO-LHR"] = ["BA495", "BA497"],
+        // LHR → Naples: BA562, BA564
+        ["LHR-NAP"] = ["BA562", "BA564"],
+        ["NAP-LHR"] = ["BA563", "BA565"],
+        // LHR → Venice VCE: BA556, BA558, BA560
+        ["LHR-VCE"] = ["BA556", "BA558", "BA560"],
+        ["VCE-LHR"] = ["BA557", "BA559", "BA561"],
+
+        // ── UK domestic flights ────────────────────────────────────────────────
+        // LHR → Edinburgh: BA1470, BA1472, BA1474, BA1476, BA1478, BA1480
+        ["LHR-EDI"] = ["BA1470", "BA1472", "BA1474", "BA1476", "BA1478", "BA1480"],
+        ["EDI-LHR"] = ["BA1471", "BA1473", "BA1475", "BA1477", "BA1479", "BA1481"],
+        // LHR → Manchester: BA1382, BA1384, BA1386, BA1388, BA1390, BA1392, BA1394
+        ["LHR-MAN"] = ["BA1382", "BA1384", "BA1386", "BA1388", "BA1390", "BA1392", "BA1394"],
+        ["MAN-LHR"] = ["BA1383", "BA1385", "BA1387", "BA1389", "BA1391", "BA1393", "BA1395"],
+        // LHR → Glasgow: BA1490, BA1492, BA1494, BA1496
+        ["LHR-GLA"] = ["BA1490", "BA1492", "BA1494", "BA1496"],
+        ["GLA-LHR"] = ["BA1491", "BA1493", "BA1495", "BA1497"],
+        // LHR → Birmingham: BA5900, BA5902, BA5904, BA5906, BA5908
+        ["LHR-BHX"] = ["BA5900", "BA5902", "BA5904", "BA5906", "BA5908"],
+        ["BHX-LHR"] = ["BA5901", "BA5903", "BA5905", "BA5907", "BA5909"],
+        // LHR → Newcastle: BA1340, BA1342, BA1344
+        ["LHR-NCL"] = ["BA1340", "BA1342", "BA1344"],
+        ["NCL-LHR"] = ["BA1341", "BA1343", "BA1345"],
+        // LHR → Bristol: BA5930, BA5932, BA5934
+        ["LHR-BRS"] = ["BA5930", "BA5932", "BA5934"],
+        ["BRS-LHR"] = ["BA5931", "BA5933", "BA5935"],
+        // LHR → Aberdeen: BA1324, BA1326, BA1328
+        ["LHR-ABZ"] = ["BA1324", "BA1326", "BA1328"],
+        ["ABZ-LHR"] = ["BA1325", "BA1327", "BA1329"],
+        // LHR → Belfast: BA1420, BA1422, BA1424
+        ["LHR-BFS"] = ["BA1420", "BA1422", "BA1424"],
+        ["BFS-LHR"] = ["BA1421", "BA1423", "BA1425"],
+
+        // ── Buenos Aires route ──────────────────────────────────────────────────
+        // LHR → Buenos Aires: BA245 (21:30)
+        ["LHR-EZE"] = ["BA245"],
+        ["EZE-LHR"] = ["BA246"],
+
+        // ── Cape Town ──────────────────────────────────────────────────────────
+        // LHR → Cape Town: BA59 (20:00)
+        ["LHR-CPT"] = ["BA59"],
+        ["CPT-LHR"] = ["BA60"],
+
+        // ── Melbourne ──────────────────────────────────────────────────────────
+        // LHR → Melbourne (via Singapore): BA17
+        ["LHR-MEL"] = ["BA17"],
+        ["MEL-LHR"] = ["BA18"],
     };
 }
