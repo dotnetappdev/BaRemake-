@@ -58,6 +58,7 @@ builder.Services.AddScoped<BookingSessionService>();
 builder.Services.AddScoped<AirportSearchService>();
 builder.Services.AddScoped<HotelSeeder>();
 builder.Services.AddSingleton<ThemeService>();
+builder.Services.AddSingleton<BrandingService>();
 
 // MudBlazor
 builder.Services.AddMudServices(config =>
@@ -106,6 +107,10 @@ using (var scope = app.Services.CreateScope())
 
     var hotelSeeder = scope.ServiceProvider.GetRequiredService<HotelSeeder>();
     await hotelSeeder.SeedAsync();
+
+    // Initialise BrandingService from DB
+    var brandingService = scope.ServiceProvider.GetRequiredService<BrandingService>();
+    await brandingService.InitialiseAsync();
 }
 
 app.Run();

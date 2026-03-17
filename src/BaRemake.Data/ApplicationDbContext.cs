@@ -11,6 +11,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
     }
 
+    public DbSet<Airline> Airlines => Set<Airline>();
+    public DbSet<BrandingSettings> BrandingSettings => Set<BrandingSettings>();
     public DbSet<Airport> Airports => Set<Airport>();
     public DbSet<Aircraft> Aircraft => Set<Aircraft>();
     public DbSet<AircraftSeat> AircraftSeats => Set<AircraftSeat>();
@@ -58,6 +60,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         // Flight
         builder.Entity<Flight>(e =>
         {
+            e.Property(f => f.FlightNumber).HasMaxLength(20);
             e.HasIndex(f => f.FlightNumber);
             e.HasIndex(f => f.DepartureTime);
         });
@@ -101,6 +104,42 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<AircraftSeat>(e =>
         {
             e.HasIndex(s => new { s.AircraftId, s.SeatNumber }).IsUnique();
+        });
+
+        // Airline
+        builder.Entity<Airline>(e =>
+        {
+            e.HasIndex(a => a.IATACode).IsUnique();
+        });
+
+        // Flight → Airline
+        builder.Entity<Flight>(e =>
+        {
+            e.HasOne(f => f.Airline)
+                .WithMany(a => a.Flights)
+                .HasForeignKey(f => f.AirlineId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // BrandingSettings - single row
+        builder.Entity<BrandingSettings>(e =>
+        {
+            e.HasData(new BrandingSettings
+            {
+                Id = 1,
+                SiteName = "BaRemake",
+                TagLine = "Search, compare & book flights worldwide",
+                LogoIcon = "✈",
+                PrimaryColor = "#002157",
+                SecondaryColor = "#c6a84b",
+                AccentColor = "#75aadb",
+                ThemePreset = "BA",
+                HeaderBackground = "#002157",
+                HeaderTextColor = "#ffffff",
+                ShowHotels = true,
+                ShowPackages = true,
+                ShowMultiAirline = true
+            });
         });
 
         // Multi-tenancy

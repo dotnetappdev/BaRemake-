@@ -7,8 +7,12 @@ public class Flight
 {
     public int Id { get; set; }
 
-    [Required, StringLength(10)]
+    [Required, StringLength(20)]
     public string FlightNumber { get; set; } = string.Empty;
+
+    // Airline that operates this flight
+    public int AirlineId { get; set; }
+    public Airline Airline { get; set; } = null!;
 
     public int RouteId { get; set; }
     public Route Route { get; set; } = null!;

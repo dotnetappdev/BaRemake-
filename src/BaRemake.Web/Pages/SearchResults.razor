@@ -18,7 +18,7 @@
     <div class="ba-results-bar">
         <div class="ba-results-bar__route">
             <strong>@BookingSession.Session.SearchRequest.OriginCode</strong>
-            <span> → </span>
+            <span class="mx-2">→</span>
             <strong>@BookingSession.Session.SearchRequest.DestinationCode</strong>
         </div>
         <div class="ba-results-bar__details">
@@ -49,36 +49,141 @@
     }
     else
     {
-        <!-- Outbound flights -->
-        <div class="ba-flight-list-header">
-            <h2>
-                @if (BookingSession.Session.SearchRequest.IsReturnTrip && ShowingReturn)
-                {
-                    <span>Choose your return flight</span>
-                }
-                else
-                {
-                    <span>Choose your outbound flight</span>
-                }
-            </h2>
-            <span class="ba-flight-count">@CurrentFlights.Count flight@(CurrentFlights.Count != 1 ? "s" : "") found</span>
-        </div>
+        <div class="ba-search-layout">
+            <!-- Filter sidebar -->
+            <aside class="ba-filter-panel">
+                <div class="ba-filter-panel__header">
+                    <h4>Filter results</h4>
+                    @if (HasActiveFilters)
+                    {
+                        <button class="ba-filter-clear" @onclick="ClearFilters">Clear all</button>
+                    }
+                </div>
 
-        <!-- Sort bar -->
-        <div class="ba-sort-bar">
-            <span>Sort by:</span>
-            <button class="ba-sort-btn @(SortBy == "time" ? "active" : "")" @onclick="() => SortFlights("time")">Departure time</button>
-            <button class="ba-sort-btn @(SortBy == "price" ? "active" : "")" @onclick="() => SortFlights("price")">Price</button>
-            <button class="ba-sort-btn @(SortBy == "duration" ? "active" : "")" @onclick="() => SortFlights("duration")">Duration</button>
-        </div>
+                <!-- Airline filter -->
+                @if (AvailableAirlines.Count > 1)
+                {
+                    <div class="ba-filter-section">
+                        <h5>Airlines</h5>
+                        @foreach (var airline in AvailableAirlines)
+                        {
+                            <label class="ba-filter-checkbox">
+                                <input type="checkbox"
+                                       checked="@IsAirlineSelected(airline.Code)"
+                                       @onchange="() => ToggleAirline(airline.Code)" />
+                                <span class="ba-filter-checkbox__airline">
+                                    @if (!string.IsNullOrEmpty(airline.LogoUrl))
+                                    {
+                                        <img src="@airline.LogoUrl" alt="@airline.Name" class="ba-filter-airline-logo" />
+                                    }
+                                    else
+                                    {
+                                        <span class="ba-filter-airline-dot" style="background: @airline.BrandColor"></span>
+                                    }
+                                    @airline.Name
+                                </span>
+                            </label>
+                        }
+                    </div>
+                }
 
-        @foreach (var flight in CurrentFlights)
-        {
-            <FlightCard Flight="@flight"
-                        SelectedClass="@BookingSession.Session.SearchRequest.CabinClass"
-                        IsSelected="@(SelectedFlightId == flight.Id)"
-                        OnSelect="() => SelectFlight(flight)" />
-        }
+                <!-- Price filter -->
+                <div class="ba-filter-section">
+                    <h5>Max price</h5>
+                    <div class="ba-price-range">
+                        <input type="range" min="@MinPrice" max="@MaxPrice" step="10"
+                               @bind="PriceFilterMax" @bind:event="oninput"
+                               class="ba-range-slider" />
+                        <span class="ba-price-range__label">Up to £@PriceFilterMax</span>
+                    </div>
+                </div>
+
+                <!-- Departure time filter -->
+                <div class="ba-filter-section">
+                    <h5>Departure time</h5>
+                    <div class="ba-time-filter">
+                        <button class="ba-time-btn @(TimeFilter == "any" ? "active" : "")" @onclick="() => TimeFilter = "any"">Any</button>
+                        <button class="ba-time-btn @(TimeFilter == "morning" ? "active" : "")" @onclick="() => TimeFilter = "morning"">Morning<br/><small>06:00–12:00</small></button>
+                        <button class="ba-time-btn @(TimeFilter == "afternoon" ? "active" : "")" @onclick="() => TimeFilter = "afternoon"">Afternoon<br/><small>12:00–18:00</small></button>
+                        <button class="ba-time-btn @(TimeFilter == "evening" ? "active" : "")" @onclick="() => TimeFilter = "evening"">Evening<br/><small>18:00+</small></button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main results column -->
+            <div class="ba-results-main">
+                <!-- Airline chips row -->
+                @if (AvailableAirlines.Count > 1)
+                {
+                    <div class="ba-airline-chips">
+                        <button class="ba-airline-chip @(SelectedAirlines.Count == 0 ? "active" : "")"
+                                @onclick="ClearAirlineFilter">
+                            All airlines
+                            <span class="ba-airline-chip__count">@CurrentSourceFlights.Count</span>
+                        </button>
+                        @foreach (var airline in AvailableAirlines)
+                        {
+                            var count = CurrentSourceFlights.Count(f => f.AirlineCode == airline.Code);
+                            <button class="ba-airline-chip @(IsAirlineSelected(airline.Code) ? "active" : "")"
+                                    style="@(IsAirlineSelected(airline.Code) ? $"background:{airline.BrandColor}; border-color:{airline.BrandColor}; color:#fff" : $"border-color:{airline.BrandColor}; color:{airline.BrandColor}")"
+                                    @onclick="() => ToggleAirline(airline.Code)">
+                                @if (!string.IsNullOrEmpty(airline.LogoUrl))
+                                {
+                                    <img src="@airline.LogoUrl" alt="" class="ba-airline-chip__logo" />
+                                }
+                                @airline.Code
+                                <span class="ba-airline-chip__count">@count</span>
+                            </button>
+                        }
+                    </div>
+                }
+
+                <!-- Header -->
+                <div class="ba-flight-list-header">
+                    <h2>
+                        @if (BookingSession.Session.SearchRequest.IsReturnTrip && ShowingReturn)
+                        {
+                            <span>Choose your return flight</span>
+                        }
+                        else
+                        {
+                            <span>Choose your outbound flight</span>
+                        }
+                    </h2>
+                    <span class="ba-flight-count">
+                        @FilteredFlights.Count flight@(FilteredFlights.Count != 1 ? "s" : "") found
+                        @if (AvailableAirlines.Count > 1)
+                        {
+                            <span class="ba-flight-count__airlines"> across @AvailableAirlines.Count airlines</span>
+                        }
+                    </span>
+                </div>
+
+                <!-- Sort bar -->
+                <div class="ba-sort-bar">
+                    <span>Sort by:</span>
+                    <button class="ba-sort-btn @(SortBy == "time" ? "active" : "")" @onclick="() => SortBy = "time"">Departure time</button>
+                    <button class="ba-sort-btn @(SortBy == "price" ? "active" : "")" @onclick="() => SortBy = "price"">Price</button>
+                    <button class="ba-sort-btn @(SortBy == "duration" ? "active" : "")" @onclick="() => SortBy = "duration"">Duration</button>
+                    <button class="ba-sort-btn @(SortBy == "airline" ? "active" : "")" @onclick="() => SortBy = "airline"">Airline</button>
+                </div>
+
+                @foreach (var flight in FilteredFlights)
+                {
+                    <FlightCard Flight="@flight"
+                                SelectedClass="@BookingSession.Session.SearchRequest.CabinClass"
+                                IsSelected="@(SelectedFlightId == flight.Id)"
+                                OnSelect="() => SelectFlight(flight)" />
+                }
+
+                @if (!FilteredFlights.Any())
+                {
+                    <div class="ba-no-results ba-no-results--filtered">
+                        <p>No flights match your filters. <button class="ba-link-btn" @onclick="ClearFilters">Clear filters</button></p>
+                    </div>
+                }
+            </div>
+        </div>
     }
 </div>
 
@@ -90,15 +195,76 @@
     private string SortBy = "time";
     private int SelectedFlightId;
 
-    private List<FlightDto> CurrentFlights =>
-        ShowingReturn ? SortedFlights(ReturnFlights) : SortedFlights(OutboundFlights);
+    // Filters
+    private HashSet<string> SelectedAirlines = new();
+    private int PriceFilterMax = 9999;
+    private int MinPrice = 0;
+    private int MaxPrice = 9999;
+    private string TimeFilter = "any";
 
-    private List<FlightDto> SortedFlights(List<FlightDto> flights) => SortBy switch
+    private List<AirlineFilterDto> AvailableAirlines = new();
+
+    private List<FlightDto> CurrentSourceFlights => ShowingReturn ? ReturnFlights : OutboundFlights;
+
+    private List<FlightDto> FilteredFlights
     {
-        "price" => flights.OrderBy(f => f.PriceForClass(BookingSession.Session.SearchRequest.CabinClass)).ToList(),
-        "duration" => flights.OrderBy(f => f.DurationMinutes).ToList(),
-        _ => flights.OrderBy(f => f.DepartureTime).ToList()
-    };
+        get
+        {
+            var flights = CurrentSourceFlights;
+            var cls = BookingSession.Session.SearchRequest.CabinClass;
+
+            // Airline filter
+            if (SelectedAirlines.Count > 0)
+                flights = flights.Where(f => SelectedAirlines.Contains(f.AirlineCode)).ToList();
+
+            // Price filter
+            if (PriceFilterMax < MaxPrice)
+                flights = flights.Where(f =>
+                {
+                    var p = f.PriceForClass(cls);
+                    return p.HasValue && p.Value <= PriceFilterMax;
+                }).ToList();
+
+            // Time filter
+            flights = TimeFilter switch
+            {
+                "morning" => flights.Where(f => f.DepartureTime.Hour >= 6 && f.DepartureTime.Hour < 12).ToList(),
+                "afternoon" => flights.Where(f => f.DepartureTime.Hour >= 12 && f.DepartureTime.Hour < 18).ToList(),
+                "evening" => flights.Where(f => f.DepartureTime.Hour >= 18).ToList(),
+                _ => flights
+            };
+
+            // Sort
+            return SortBy switch
+            {
+                "price" => flights.OrderBy(f => f.PriceForClass(cls)).ToList(),
+                "duration" => flights.OrderBy(f => f.DurationMinutes).ToList(),
+                "airline" => flights.OrderBy(f => f.AirlineName).ToList(),
+                _ => flights.OrderBy(f => f.DepartureTime).ToList()
+            };
+        }
+    }
+
+    private bool HasActiveFilters => SelectedAirlines.Count > 0 || PriceFilterMax < MaxPrice || TimeFilter != "any";
+
+    private bool IsAirlineSelected(string code) => SelectedAirlines.Contains(code);
+
+    private void ToggleAirline(string code)
+    {
+        if (SelectedAirlines.Contains(code))
+            SelectedAirlines.Remove(code);
+        else
+            SelectedAirlines.Add(code);
+    }
+
+    private void ClearAirlineFilter() => SelectedAirlines.Clear();
+
+    private void ClearFilters()
+    {
+        SelectedAirlines.Clear();
+        PriceFilterMax = MaxPrice;
+        TimeFilter = "any";
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -118,10 +284,36 @@
                 req.DestinationCode, req.OriginCode,
                 req.ReturnDate.Value, req.TotalPassengers, req.CabinClass);
 
+        // Build airline list from outbound results
+        AvailableAirlines = OutboundFlights
+            .Select(f => new AirlineFilterDto
+            {
+                Code = f.AirlineCode,
+                Name = f.AirlineName,
+                LogoUrl = f.AirlineLogoUrl,
+                BrandColor = f.AirlineBrandColor
+            })
+            .DistinctBy(a => a.Code)
+            .OrderBy(a => a.Name)
+            .ToList();
+
+        // Set price range
+        var cls = req.CabinClass;
+        var prices = OutboundFlights
+            .Select(f => f.PriceForClass(cls))
+            .Where(p => p.HasValue)
+            .Select(p => (int)p!.Value)
+            .ToList();
+
+        if (prices.Any())
+        {
+            MinPrice = prices.Min();
+            MaxPrice = prices.Max();
+            PriceFilterMax = MaxPrice;
+        }
+
         IsLoading = false;
     }
-
-    private void SortFlights(string by) => SortBy = by;
 
     private void SelectFlight(FlightDto flight)
     {

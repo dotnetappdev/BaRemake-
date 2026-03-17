@@ -1509,3 +1509,117 @@ a:hover { color: var(--ba-blue); text-decoration: underline; }
 .dark-mode .ba-seatmap { background: #1a1a2e; }
 .dark-mode .ba-seat--available { background: #1e3a2b; border-color: #2d5c40; }
 .dark-mode .ba-off-white { background: #0f0f1a; }
+
+/* ── Multi-airline Search Results Layout ──────────────────── */
+.ba-search-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .ba-search-layout { grid-template-columns: 1fr; }
+  .ba-filter-panel { display: none; }
+}
+
+/* Filter panel (sidebar) */
+.ba-filter-panel {
+  background: var(--ba-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  position: sticky;
+  top: calc(var(--header-height) + 16px);
+}
+.ba-filter-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.ba-filter-panel__header h4 { margin: 0; font-size: 0.95rem; font-weight: 700; }
+.ba-filter-clear { background: none; border: none; color: var(--ba-mid-blue); cursor: pointer; font-size: 0.8rem; }
+.ba-filter-section { margin-bottom: 20px; border-top: 1px solid var(--ba-light-grey); padding-top: 16px; }
+.ba-filter-section h5 { margin: 0 0 10px; font-size: 0.85rem; font-weight: 600; color: var(--ba-dark-grey); text-transform: uppercase; letter-spacing: 0.05em; }
+.ba-filter-checkbox { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; font-size: 0.9rem; }
+.ba-filter-checkbox input { accent-color: var(--ba-blue); }
+.ba-filter-checkbox__airline { display: flex; align-items: center; gap: 6px; }
+.ba-filter-airline-logo { width: 24px; height: 16px; object-fit: contain; }
+.ba-filter-airline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* Price range slider */
+.ba-price-range { display: flex; flex-direction: column; gap: 6px; }
+.ba-range-slider { width: 100%; accent-color: var(--ba-blue); }
+.ba-price-range__label { font-size: 0.875rem; font-weight: 600; color: var(--ba-blue); }
+
+/* Time filter buttons */
+.ba-time-filter { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ba-time-btn {
+  background: var(--ba-off-white); border: 1px solid var(--ba-light-grey);
+  border-radius: 6px; padding: 6px 4px; font-size: 0.75rem; cursor: pointer;
+  text-align: center; transition: var(--transition);
+}
+.ba-time-btn.active { background: var(--ba-blue); color: white; border-color: var(--ba-blue); }
+
+/* Airline chips row */
+.ba-airline-chips {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+}
+.ba-airline-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 24px; font-size: 0.85rem; font-weight: 600;
+  border: 2px solid var(--ba-light-grey); background: white; cursor: pointer;
+  transition: var(--transition);
+}
+.ba-airline-chip.active { background: var(--ba-blue); border-color: var(--ba-blue); color: white; }
+.ba-airline-chip__logo { width: 20px; height: 14px; object-fit: contain; }
+.ba-airline-chip__count {
+  background: rgba(0,0,0,0.12); border-radius: 12px;
+  padding: 1px 7px; font-size: 0.75rem; font-weight: 700;
+}
+
+/* Flight count */
+.ba-flight-count__airlines { font-weight: 400; font-size: 0.85rem; }
+
+/* No results filtered */
+.ba-no-results--filtered {
+  padding: 24px; text-align: center; background: var(--ba-white);
+  border-radius: var(--border-radius); box-shadow: var(--shadow-sm);
+}
+.ba-link-btn { background: none; border: none; color: var(--ba-mid-blue); cursor: pointer; text-decoration: underline; }
+
+/* ── FlightCard airline header ────────────────────────────── */
+.ba-flight-card__airline {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; border-radius: var(--border-radius) var(--border-radius) 0 0;
+  border-bottom: 1px solid var(--ba-light-grey);
+}
+.ba-airline-badge { display: flex; align-items: center; gap: 10px; }
+.ba-airline-logo { height: 24px; max-width: 80px; object-fit: contain; }
+.ba-airline-code-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-weight: 700; font-size: 0.75rem; letter-spacing: 0.08em;
+}
+.ba-airline-name { font-weight: 600; font-size: 0.875rem; color: var(--ba-dark-grey); }
+.ba-tag { padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.ba-tag--lowcost { background: #fef3c7; color: #92400e; }
+
+/* City labels on flight times */
+.ba-flight-time__city { font-size: 0.7rem; color: var(--ba-mid-grey); margin-top: 2px; }
+
+/* ── Theme Swatch Buttons (Admin Settings) ────────────────── */
+.theme-swatch-btn {
+  position: relative; width: 64px; height: 64px; border-radius: 10px;
+  border: 3px solid transparent; cursor: pointer; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  padding-bottom: 6px; transition: var(--transition);
+}
+.theme-swatch-btn--active { border-color: white !important; box-shadow: 0 0 0 3px currentColor; }
+.theme-swatch-btn__accent {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 16px;
+}
+.theme-swatch-btn__label {
+  position: relative; z-index: 1; font-size: 0.6rem; font-weight: 700;
+  color: rgba(255,255,255,0.9); text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}

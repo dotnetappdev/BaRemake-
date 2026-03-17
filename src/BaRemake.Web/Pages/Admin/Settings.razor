@@ -1,8 +1,10 @@
 @page "/admin/settings"
 @rendermode InteractiveServer
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@using BaRemake.Shared.Models
 @using BaRemake.Web.Services
 @inject ThemeService ThemeService
+@inject BrandingService BrandingService
 @inject IConfiguration Config
 @inject ISnackbar Snackbar
 
@@ -12,78 +14,219 @@
     <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-6">Admin Settings</MudText>
 
     <MudGrid>
-        <!-- Theme Settings -->
+        <!-- Site Identity -->
         <MudItem xs="12" md="6">
             <MudCard Elevation="2">
                 <MudCardHeader>
                     <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Theme &amp; Branding</MudText>
-                        <MudText Typo="Typo.body2" Class="mt-1">Customise the look of your platform</MudText>
+                        <MudText Typo="Typo.h6">Site Identity</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1">Name, logo and tagline shown to customers</MudText>
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
-                    <!-- Dark/Light mode toggle -->
+                    <MudStack Spacing="3">
+                        <MudTextField @bind-Value="Branding.SiteName"
+                                      Label="Site name"
+                                      Variant="Variant.Outlined"
+                                      HelperText="Displayed in header and browser tab" />
+
+                        <MudTextField @bind-Value="Branding.TagLine"
+                                      Label="Tagline"
+                                      Variant="Variant.Outlined"
+                                      HelperText="Short strapline under the logo" />
+
+                        <MudTextField @bind-Value="Branding.LogoUrl"
+                                      Label="Logo URL"
+                                      Variant="Variant.Outlined"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Image"
+                                      HelperText="Leave blank to use text logo with icon" />
+
+                        <MudTextField @bind-Value="Branding.LogoIcon"
+                                      Label="Logo icon (fallback)"
+                                      Variant="Variant.Outlined"
+                                      HelperText="Emoji or SVG used if no logo URL set" />
+
+                        <MudTextField @bind-Value="Branding.MetaDescription"
+                                      Label="SEO meta description"
+                                      Variant="Variant.Outlined"
+                                      Lines="2" />
+
+                        @if (!string.IsNullOrEmpty(Branding.LogoUrl))
+                        {
+                            <div class="d-flex align-items-center gap-3 pa-2 mud-paper">
+                                <img src="@Branding.LogoUrl" alt="Logo preview" style="max-height:48px; max-width:160px;" />
+                                <MudText Typo="Typo.caption">Logo preview</MudText>
+                            </div>
+                        }
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Theme & Colours -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Theme &amp; Colours</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1">Brand colours, presets and dark mode</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <!-- Dark mode -->
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <MudText Typo="Typo.subtitle2">Dark mode</MudText>
-                        <MudSwitch T="bool" Value="ThemeService.IsDarkMode"
-                                   ValueChanged="v => ThemeService.SetDarkMode(v)"
+                        <div>
+                            <MudText Typo="Typo.subtitle2">Dark mode default</MudText>
+                            <MudText Typo="Typo.caption">Apply dark theme for new visitors</MudText>
+                        </div>
+                        <MudSwitch T="bool" Value="Branding.DefaultDarkMode"
+                                   ValueChanged="v => { Branding.DefaultDarkMode = v; ThemeService.SetDarkMode(v); }"
                                    Color="Color.Primary" />
                     </div>
 
                     <!-- Theme presets -->
                     <MudText Typo="Typo.subtitle2" Class="mb-2">Theme preset</MudText>
-                    <div class="d-flex gap-3 flex-wrap mb-4">
-                        <MudTooltip Text="British Airways (default)">
-                            <MudIconButton Icon="@Icons.Material.Filled.Circle"
-                                           Style="color: #002157;"
-                                           Class="@($"theme-swatch {(ThemeService.ThemePreset == "BA" ? "theme-swatch--active" : "")}")"
-                                           @onclick="() => ThemeService.SetPreset("BA")" />
-                        </MudTooltip>
-                        <MudTooltip Text="BookIt Purple">
-                            <MudIconButton Icon="@Icons.Material.Filled.Circle"
-                                           Style="color: #6b21a8;"
-                                           Class="@($"theme-swatch {(ThemeService.ThemePreset == "BookIt" ? "theme-swatch--active" : "")}")"
-                                           @onclick="() => ThemeService.SetPreset("BookIt")" />
-                        </MudTooltip>
-                        <MudTooltip Text="Forest Green">
-                            <MudIconButton Icon="@Icons.Material.Filled.Circle"
-                                           Style="color: #065f46;"
-                                           Class="@($"theme-swatch {(ThemeService.ThemePreset == "Green" ? "theme-swatch--active" : "")}")"
-                                           @onclick="() => ThemeService.SetPreset("Green")" />
-                        </MudTooltip>
-                        <MudTooltip Text="Red">
-                            <MudIconButton Icon="@Icons.Material.Filled.Circle"
-                                           Style="color: #991b1b;"
-                                           Class="@($"theme-swatch {(ThemeService.ThemePreset == "Red" ? "theme-swatch--active" : "")}")"
-                                           @onclick="() => ThemeService.SetPreset("Red")" />
-                        </MudTooltip>
+                    <div class="d-flex gap-2 flex-wrap mb-4">
+                        @foreach (var preset in Presets)
+                        {
+                            <MudTooltip Text="@preset.Label">
+                                <button class="theme-swatch-btn @(Branding.ThemePreset == preset.Key ? "theme-swatch-btn--active" : "")"
+                                        style="background: @preset.Primary; border-color: @(Branding.ThemePreset == preset.Key ? preset.Secondary : "transparent")"
+                                        @onclick="() => SelectPreset(preset.Key, preset.Primary, preset.Secondary)">
+                                    <span style="background: @preset.Secondary" class="theme-swatch-btn__accent"></span>
+                                    <span class="theme-swatch-btn__label">@preset.Key</span>
+                                </button>
+                            </MudTooltip>
+                        }
                     </div>
 
                     <!-- Custom colour pickers -->
-                    <MudText Typo="Typo.subtitle2" Class="mb-2">Custom colours</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Custom brand colours</MudText>
                     <MudGrid>
                         <MudItem xs="6">
                             <MudColorPicker Label="Primary colour"
-                                            @bind-Text="CustomPrimary"
+                                            @bind-Text="Branding.PrimaryColor"
                                             ColorPickerMode="ColorPickerMode.Spectrum"
                                             Variant="Variant.Outlined"
                                             DisableToolbar="false" />
                         </MudItem>
                         <MudItem xs="6">
                             <MudColorPicker Label="Secondary colour"
-                                            @bind-Text="CustomSecondary"
+                                            @bind-Text="Branding.SecondaryColor"
                                             ColorPickerMode="ColorPickerMode.Spectrum"
                                             Variant="Variant.Outlined" />
                         </MudItem>
-                        <MudItem xs="12">
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                                       @onclick="ApplyCustomTheme" FullWidth="true">
-                                Apply custom theme
-                            </MudButton>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Branding.HeaderBackground"
+                                          Label="Header background"
+                                          Variant="Variant.Outlined"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.ColorLens" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Branding.HeaderTextColor"
+                                          Label="Header text colour"
+                                          Variant="Variant.Outlined"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.TextFields" />
                         </MudItem>
                     </MudGrid>
+
+                    <!-- Live preview strip -->
+                    <div class="branding-preview-strip mt-3"
+                         style="background: @Branding.HeaderBackground; color: @Branding.HeaderTextColor; padding: 12px 16px; border-radius: 8px;">
+                        <strong>@Branding.SiteName</strong>
+                        <span style="font-size:0.8rem; margin-left:8px; opacity:0.8">@Branding.TagLine</span>
+                    </div>
                 </MudCardContent>
             </MudCard>
+        </MudItem>
+
+        <!-- Feature Toggles -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Feature Toggles</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1">Enable/disable sections of the site</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack Spacing="2">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Hotels</MudText>
+                                <MudText Typo="Typo.caption">Show hotel search and booking</MudText>
+                            </div>
+                            <MudSwitch T="bool" @bind-Value="Branding.ShowHotels" Color="Color.Primary" />
+                        </div>
+                        <MudDivider />
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Holiday Packages</MudText>
+                                <MudText Typo="Typo.caption">Show flight + hotel package deals</MudText>
+                            </div>
+                            <MudSwitch T="bool" @bind-Value="Branding.ShowPackages" Color="Color.Primary" />
+                        </div>
+                        <MudDivider />
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Multi-airline results</MudText>
+                                <MudText Typo="Typo.caption">Show flights from all operators (Expedia-style)</MudText>
+                            </div>
+                            <MudSwitch T="bool" @bind-Value="Branding.ShowMultiAirline" Color="Color.Primary" />
+                        </div>
+                        <MudDivider />
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Car hire</MudText>
+                                <MudText Typo="Typo.caption">Show car hire search tab</MudText>
+                            </div>
+                            <MudSwitch T="bool" @bind-Value="Branding.ShowCarHire" Color="Color.Primary" />
+                        </div>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Footer -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Footer</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack Spacing="3">
+                        <MudTextField @bind-Value="Branding.FooterCopyright"
+                                      Label="Copyright line"
+                                      Variant="Variant.Outlined"
+                                      HelperText="e.g. © 2025 Acme Travel Ltd. All rights reserved." />
+                        <MudTextField @bind-Value="Branding.FooterTechLine"
+                                      Label="Tech credit line"
+                                      Variant="Variant.Outlined" />
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Save button -->
+        <MudItem xs="12">
+            <MudStack Row Justify="Justify.FlexEnd" Spacing="2">
+                <MudButton Variant="Variant.Outlined" @onclick="ResetToSaved">Reset changes</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Save"
+                           @onclick="SaveBranding"
+                           Disabled="@IsSaving">
+                    @if (IsSaving)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate Class="me-2" />
+                    }
+                    Save branding settings
+                </MudButton>
+            </MudStack>
         </MudItem>
 
         <!-- Data Management -->
@@ -114,7 +257,7 @@
                                    StartIcon="@Icons.Material.Filled.HotelClass"
                                    @onclick="SeedHotels"
                                    Disabled="@IsBusy" FullWidth="true">
-                            Seed hotel & package data only
+                            Seed hotel &amp; package data only
                         </MudButton>
 
                         <MudDivider />
@@ -140,9 +283,11 @@
                     </MudStack>
                 </MudCardContent>
             </MudCard>
+        </MudItem>
 
-            <!-- Database provider info -->
-            <MudCard Elevation="2" Class="mt-4">
+        <!-- Database info -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="2">
                 <MudCardHeader>
                     <CardHeaderContent>
                         <MudText Typo="Typo.h6">Database</MudText>
@@ -155,8 +300,12 @@
                             <MudText Typo="Typo.body1"><strong>@Config["DatabaseProvider"]</strong></MudText>
                         </MudItem>
                         <MudItem xs="6">
-                            <MudText Typo="Typo.caption">Theme preset</MudText>
+                            <MudText Typo="Typo.caption">Active theme preset</MudText>
                             <MudText Typo="Typo.body1"><strong>@ThemeService.ThemePreset</strong></MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.caption">Last branding update</MudText>
+                            <MudText Typo="Typo.body1"><strong>@BrandingService.Current.LastUpdated.ToString("dd MMM yyyy HH:mm")</strong></MudText>
                         </MudItem>
                     </MudGrid>
                 </MudCardContent>
@@ -166,21 +315,85 @@
 </MudContainer>
 
 @code {
-    private string CustomPrimary = "#002157";
-    private string CustomSecondary = "#c6a84b";
+    private BrandingSettings Branding = new();
+    private bool IsSaving;
     private bool IsBusy;
     private string? BusyAction;
 
-    private void ApplyCustomTheme()
+    private record PresetDef(string Key, string Label, string Primary, string Secondary);
+
+    private readonly List<PresetDef> Presets = new()
     {
-        ThemeService.ApplyCustomColors(CustomPrimary, CustomSecondary);
-        Snackbar.Add("Custom theme applied!", Severity.Success);
+        new("BA",     "British Airways",  "#002157", "#c6a84b"),
+        new("BookIt", "BookIt Purple",    "#6b21a8", "#a855f7"),
+        new("Green",  "Forest Green",     "#065f46", "#10b981"),
+        new("Red",    "Red",              "#991b1b", "#ef4444"),
+        new("Custom", "Custom",           "#1e40af", "#f59e0b"),
+    };
+
+    protected override void OnInitialized()
+    {
+        // Clone current branding for editing
+        var src = BrandingService.Current;
+        Branding = new BrandingSettings
+        {
+            Id = src.Id,
+            SiteName = src.SiteName,
+            TagLine = src.TagLine,
+            LogoUrl = src.LogoUrl,
+            LogoIcon = src.LogoIcon,
+            PrimaryColor = src.PrimaryColor,
+            SecondaryColor = src.SecondaryColor,
+            AccentColor = src.AccentColor,
+            ThemePreset = src.ThemePreset,
+            DefaultDarkMode = src.DefaultDarkMode,
+            HeaderBackground = src.HeaderBackground,
+            HeaderTextColor = src.HeaderTextColor,
+            FooterCopyright = src.FooterCopyright,
+            FooterTechLine = src.FooterTechLine,
+            MetaDescription = src.MetaDescription,
+            ShowHotels = src.ShowHotels,
+            ShowPackages = src.ShowPackages,
+            ShowCarHire = src.ShowCarHire,
+            ShowMultiAirline = src.ShowMultiAirline,
+        };
     }
+
+    private void SelectPreset(string key, string primary, string secondary)
+    {
+        Branding.ThemePreset = key;
+        Branding.PrimaryColor = primary;
+        Branding.SecondaryColor = secondary;
+        Branding.HeaderBackground = primary;
+        ThemeService.SetPreset(key);
+    }
+
+    private async Task SaveBranding()
+    {
+        IsSaving = true;
+        try
+        {
+            // Sync ThemeService with chosen colours
+            ThemeService.ApplyCustomColors(Branding.PrimaryColor, Branding.SecondaryColor);
+            await BrandingService.SaveAsync(Branding);
+            Snackbar.Add("Branding settings saved successfully.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Save failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private void ResetToSaved() => OnInitialized();
 
     private async Task SeedData()
     {
         IsBusy = true; BusyAction = "seed";
-        await Task.Delay(500); // Simulate - in prod call the DataSeeder
+        await Task.Delay(500);
         Snackbar.Add("Seed data applied successfully.", Severity.Success);
         IsBusy = false;
     }
